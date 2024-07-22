@@ -125,7 +125,7 @@ def update_and_save_evaluation(model_name, dataset_name, accuracy, f1_score, ave
 def eval_linear_prob(args, dataset_path, dataset_names, image_extensions, device):
     print("*************")
     print("Evaluating Linear Probing Method!")
-    model_names = ['content/weights/CLIP_linear_prob_2_epoch_'+args.model+'_vit_large_with_augs.pth']
+    model_names = ['/content/drive/MyDrive/weights/CLIP_linear_prob_2_epoch_'+args.model+'_vit_large_with_augs.pth']
     model_evaluations = {}
     tfms = transforms.Compose([
                 transforms.CenterCrop(224),
@@ -209,15 +209,15 @@ def eval_fine_tuning(args, dataset_path, dataset_names, image_extensions, device
     print("Evaluating Fine-Tuning Method!")
 
     if '100k' in args.model:
-        model_names = ['content/weights/finetuned_1_epoch_100k/']
+        model_names = ['content/drive/MyDrive/weights/finetuned_1_epoch_100k/']
     elif '80k' in args.model:
-        model_names = ['content/weights/finetuned_1_epoch_80k/']
+        model_names = ['content/drive/MyDrive/weights/finetuned_1_epoch_80k/']
     elif '60k' in args.model:
-        model_names = ['content/weights/finetuned_1_epoch_60k/']
+        model_names = ['content/drive/MyDrive/weights/finetuned_1_epoch_60k/']
     elif '40k' in args.model:
-        model_names = ['content/weights/finetuned_1_epoch_40k/']
+        model_names = ['content/drive/MyDrive/weights/finetuned_1_epoch_40k/']
     elif '20k' in args.model:
-        model_names = ['content/weights/finetuned_1_epoch_20k/']
+        model_names = ['content/drive/MyDrive/weights/finetuned_1_epoch_20k/']
     
     model_evaluations = {}
     args.parser = dummy_parse_args()
@@ -245,15 +245,15 @@ def eval_adapter_network(args, dataset_path, dataset_names, image_extensions, de
     print("Evaluating Adapter Network Method!")
 
     if '100k' in args.model:
-        model_names = ['content/weights/clipadapter_100k_real_fake_04_best/']
+        model_names = ['content/drive/MyDrive/weights/clipadapter_100k_real_fake_04_best/']
     elif '80k' in args.model:
-        model_names = ['content/weights/clipadapter_40k_real_fake_04/']
+        model_names = ['content/drive/MyDrive/weights/clipadapter_40k_real_fake_04/']
     elif '60k' in args.model:
-        model_names = ['content/weights/clipadapter_30k_real_fake_04/']
+        model_names = ['content/drive/MyDrive/weights/clipadapter_30k_real_fake_04/']
     elif '40k' in args.model:
-        model_names = ['content/weights/clipadapter_20k_real_fake_04/']
+        model_names = ['content/drive/MyDrive/weights/clipadapter_20k_real_fake_04/']
     elif '20k' in args.model:
-        model_names = ['content/weights/clipadapter_10k_real_fake_04/']
+        model_names = ['content/drive/MyDrive/weights/clipadapter_10k_real_fake_04/']
     
     model_evaluations = {}
     args.parser = dummy_parse_args()
@@ -281,11 +281,11 @@ def eval_prompt_tuning(args, dataset_path, dataset_names, image_extensions, devi
     print("Evaluating Prompt Tuning Method!")
 
     if '100k_16' in args.model:
-        model_names = ['content/weights/100000_16context_best_until_now/']
+        model_names = ['content/drive/MyDrive/weights/100000_16context_best_until_now/']
     elif '100k_8' in args.model:
-        model_names = ['content/weights/100000_8context/']
+        model_names = ['content/drive/MyDrive/weights/100000_8context/']
     elif '100k_4' in args.model:
-        model_names = ['content/weights/100000_4context/']
+        model_names = ['content/drive/MyDrive/weights/100000_4context/']
     
     model_evaluations = {}
     splitted_string = model_names[0].split('/')[-2].split('_')[1]
