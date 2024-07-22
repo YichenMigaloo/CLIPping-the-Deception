@@ -1,0 +1,14 @@
+{
+  "/content/drive/MyDrive/weights/selected_linearprob_models/CLIP_linear_prob_2_epoch_100k_vit_large_with_augs.pth": {
+    "progan": {
+      "accuracy": 98.5,
+      "f1_score": 98.4998499849985,
+      "average_precision": 99.90994436870106
+    },
+    "biggan": {
+      "accuracy": 91.77499999999999,
+      "f1_score": 91.77366270604365,
+      "average_precision": 97.76942226221637
+    }
+  }
+}
