@@ -27,8 +27,9 @@ class progan_train(DatasetBase):
                 train = preprocessed["train"]
                 test = preprocessed["test"]
         else:
-            text_file = os.path.join(self.dataset_dir, "classnames.txt")
-            classnames = self.read_classnames(text_file)
+            #text_file = os.path.join(self.dataset_dir, "classnames.txt")
+            #classnames = self.read_classnames(text_file)
+            classnames = [0,1]
             train = self.read_data(classnames, "train")
             # Follow standard practice to perform evaluation on the val set
             # Also used as the val set (so evaluate the last-step model)
