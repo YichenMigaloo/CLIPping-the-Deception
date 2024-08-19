@@ -166,7 +166,7 @@ def get_parsed_args_adapter(model_dir, dataset_name, dataset_path):
     parser.add_argument(
         "--config-file", type=str, default="./configs/trainers/coop/vit_l14_ep2.yaml", help="path to config file"
     )
-    parser.add_argument("--dataset-config-file", type=str, default="./configs/datasets/"+str(dataset_name)+".yaml",
+    parser.add_argument("--dataset-config-file", type=str, default="CLIPping-the-Deception/configs/datasets/"+str(dataset_name)+".yaml",
         help="path to config file for dataset setup",)
     parser.add_argument("--trainer", type=str, default="CLIP_Adapter", help="name of trainer")
     parser.add_argument("--backbone", type=str, default="", help="name of CNN backbone")
