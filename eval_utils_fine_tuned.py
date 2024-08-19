@@ -165,7 +165,7 @@ def get_parsed_args_fine_tuned(model_dir, dataset_name, dataset_path):
         "--transforms", type=str, nargs="+", help="data augmentation methods"
     )
     parser.add_argument(
-        "--config-file", type=str, default="./configs/trainers/coop/vit_l14_ep1.yaml", help="path to config file"
+        "--config-file", type=str, default="CLIPping-the-Deception/configs/trainers/coop/vit_l14_ep1.yaml", help="path to config file"
     )
     parser.add_argument("--dataset-config-file", type=str, default="CLIPping-the-Deception/configs/datasets/"+str(dataset_name)+".yaml",
         help="path to config file for dataset setup",)
