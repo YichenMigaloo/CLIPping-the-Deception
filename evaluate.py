@@ -245,7 +245,7 @@ def eval_adapter_network(args, dataset_path, dataset_names, image_extensions, de
     print("Evaluating Adapter Network Method!")
 
     if '100k' in args.model:
-        model_names = ['/content/drive/MyDrive/weights/selected_clip_adapter_models/clipadapter_100k_real_fake_04_best/']
+        model_names = ['/content/CLIPping-the-Deception/weights/selected_clip_adapter_models/clipadapter_100k_real_fake_04_best/']
     elif '80k' in args.model:
         model_names = ['/content/drive/MyDrive/weights/selected_clip_adapter_models/clipadapter_40k_real_fake_04/']
     elif '60k' in args.model:
