@@ -281,7 +281,7 @@ def eval_prompt_tuning(args, dataset_path, dataset_names, image_extensions, devi
     print("Evaluating Prompt Tuning Method!")
 
     if '100k_16' in args.model:
-        model_names = ['/content/drive/MyDrive/weights/selected_coop_models/100000_16context_best_until_now']
+        model_names = ['/content/drive/MyDrive/weights/selected_coop_models/100000_16context_best_until_now/prompt_learner']
     elif '100k_8' in args.model:
         model_names = ['content/drive/MyDrive/weights/100000_8context/']
     elif '100k_4' in args.model:
