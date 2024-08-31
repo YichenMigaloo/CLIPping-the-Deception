@@ -23,7 +23,7 @@ def train_model(model, model_name, epochs, learning_rate, train_loader, valid_lo
     # scheduler
     # scheduler = StepLR(optimizer, step_size=10, gamma=0.1)
     model.train()
-    for epoch in range(epochs):
+    for epoch in range(10):
         epoch_loss = 0
         epoch_accuracy = 0
         for data, label in (train_loader):
