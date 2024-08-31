@@ -87,6 +87,9 @@ class Adapter(nn.Module):
             nn.Linear(768, 384, bias=False),
             nn.ReLU(inplace=True),
             nn.Linear(384, 768, bias=False),
+            nn.ReLU(inplace=True),
+
+            nn.Linear(384, 768, bias=False),
             nn.ReLU(inplace=True)
         )
 
