@@ -180,7 +180,7 @@ def get_parsed_args(model_dir, dataset_name, num_ctx_tokens, dataset_path):
         help="load model from this directory for eval-only mode",
     )
     parser.add_argument(
-        "--load-epoch", type=int, default="10", help="load model weights at this epoch for evaluation"
+        "--load-epoch", type=int, default=None, help="load model weights at this epoch for evaluation"
     )
     parser.add_argument(
         "--no-train", action="store_true", help="do not call trainer.train()"
