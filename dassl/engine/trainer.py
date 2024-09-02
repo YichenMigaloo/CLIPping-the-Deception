@@ -437,7 +437,7 @@ class SimpleTrainer(TrainerBase):
                     self.epoch,
                     self.output_dir,
                     val_result=curr_result,
-                    model_name="model-best.pth.tar"
+                    model_name="model-best.pth"
                 )
 
         if meet_checkpoint_freq or last_epoch:
