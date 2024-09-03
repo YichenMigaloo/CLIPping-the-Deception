@@ -241,85 +241,7 @@ def eval_fine_tuning(args, dataset_path, dataset_names, image_extensions, device
         update_and_save_evaluation(model_names[0], dataset, results_dict['accuracy'], results_dict['macro_f1'], results_dict['average_precision'], args.output, model_evaluations)
 
 def eval_adapter_network(args, dataset_path, dataset_names, image_extensions, device):
-    print("************")
-    print("Evaluating Adapter Network Method!")
-    model_names = ['/content/CLIPping-the-Deception/train_outputs/clip_adapter_100k_2epochs/clip_adapter/model.pth.tar-10']
-    model_evaluations ={}
-    tfms = transforms.Compose([
-                transforms.CenterCrop(224),
-                transforms.ToTensor(),
-                transforms.Normalize((0.48145466, 0.4578275, 0.40821073), (0.26862954, 0.26130258, 0.27577711)),
-            ])
-    for model_name in model_names:
-        model_ours = clipmodel()
-        model_ours.load_state_dict(torch.load(model_name), strict = True)
-        model_ours.eval()
-        model_ours.cuda()
-        print("==Loaded"+model_name.split('/')[-1].split('.')[0] + '==')
-        for dataset in dataset_names:
-            print("*************")
-            print("Evaluating on:" + dataset)
-            labels_map = ["real", "fake"]
-            count = 0
-            all_images = []
-            predicted_labels = []
-            true_labels = []
-            predicted_probs = []
-
-            dataset_path = dataset_path.replace('\\','/')
-            real_image_directory = dataset_path + '/' + dataset + '/images/val/n01440764/'
-            fake_image_directory = dataset_path + '/' + dataset + '/images/val/n01443537/'
-            print(real_image_directory)
-
-            images = []
-            for extension in image_extensions:
-                images.extend(glob.glob(os.path.join(real_image_directory, extension)))
-                images.extend(glob.glob(os.path.join(fake_image_directory, extension)))
-            images = sorted(images)
-            images = [path.replace('\\','/') for path in images]
-            print('Num. Images: ', len(images))
-            y_pred = []
-            for image in images:
-                img = cv2.imread(image)
-                # img = cv2_jpg(img, 50)
-                # image = add_noise(image, 0.4)
-                # gaussian_blur(img, sig)
-                img = Image.fromarray(img)
-                img = img.convert('RGB')
-                # img = Image.open(image)
-                img = tfms(img)
-                y_true = []
-                with torch.no_grad():
-                    with torch.cuda.amp.autocast():
-                        outputs = model_ours(img.unsqueeze(0).to(device))
-                        y_pred.extend(outputs.sigmoid().flatten().tolist())
-                        # y_true.extend(label.flatten().tolist())
-        
-                for idx in torch.topk(outputs[0], k=1).indices.tolist():
-                    prob = torch.softmax(outputs[0], 0)[idx].item()
-                    if labels_map[idx] == 'real':
-                        # print("real")
-                        predicted_labels.append(0)
-                        predicted_probs.append(1 - prob)
-                    else:
-                        # print("fake")
-                        predicted_labels.append(1)
-                        predicted_probs.append(prob)
-                if 'n01440764' in image.split('/')[-2]:
-                    true_labels.append(0)
-                else:
-                    true_labels.append(1)
-            
-            average_precision = 100 * average_precision_score(true_labels, predicted_probs)
-            accuracy = 100 * accuracy_score(true_labels, predicted_labels)
-            macro_f1 = 100.0 * f1_score(true_labels, predicted_labels, average="macro")
-            
-            update_and_save_evaluation(model_name, dataset, accuracy, macro_f1, average_precision, args.output, model_evaluations)
-            print('--------------')
-            
-        torch.cuda.empty_cache()
-
-    '''print("*************")
+    print("*************")
     print("Evaluating Adapter Network Method!")
 
     if '100k' in args.model:
@@ -353,7 +275,7 @@ def eval_adapter_network(args, dataset_path, dataset_names, image_extensions, de
 
         results, results_dict = trainer.test()
         update_and_save_evaluation(model_names[0], dataset, results_dict['accuracy'], results_dict['macro_f1'], results_dict['average_precision'], args.output, model_evaluations)
-'''
+
 def eval_prompt_tuning(args, dataset_path, dataset_names, image_extensions, device):
     print("*************")
     print("Evaluating Prompt Tuning Method!")
