@@ -22,7 +22,8 @@ class progan(DatasetBase):
         self.split_fewshot_dir = os.path.join(self.dataset_dir, "split_fewshot")
         mkdir_if_missing(self.split_fewshot_dir)
 
-        if os.path.exists(self.preprocessed):
+        #if os.path.exists(self.preprocessed):
+        if None == True:
             with open(self.preprocessed, "rb") as f:
                 preprocessed = pickle.load(f)
                 train = preprocessed["train"]
