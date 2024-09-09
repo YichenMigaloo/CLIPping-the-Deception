@@ -219,11 +219,14 @@ class DatasetWrapper(TorchDataset):
 
     def __getitem__(self, idx):
         item = self.data_source[idx]
-
+        modified_path = item.impath.replace(
+            r"C:\Users\Sohail\Desktop\Research\PhD\Year3\DeepfakeDetection\Datasets\ICMRDataset\test\deepfake_eval\progan\images\val\n01440764", 
+            r"/content/CLIPping-the-Deception/deepfake_eval/progan/images/val/n01440764"
+            )
         output = {
             "label": item.label,
             "domain": item.domain,
-            "impath": item.impath.replace("C:\Users\Sohail\Desktop\Research\PhD\Year3\DeepfakeDetection\Datasets\ICMRDataset\test\deepfake_eval\progan\images\val\n01440764\","/content/CLIPping-the-Deception/deepfake_eval/progan/images/val/n01440764"),
+            "impath": modified_path,
             "index": idx
         }
         print('data path = ' + item.impath)
