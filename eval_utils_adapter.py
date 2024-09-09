@@ -142,7 +142,9 @@ def setup_cfg_adapter(args):
 
 def get_parsed_args_adapter(model_dir, dataset_name, dataset_path):
     parser = argparse.ArgumentParser(allow_abbrev=True)
-    parser.add_argument("--root", type=str, default=dataset_path, help="path to dataset")
+    #parser.add_argument("--root", type=str, default=dataset_path, help="path to dataset")
+    parser.add_argument("--root", type=str, default='/content/CLIPping-the-Deception/deepfake_eval', help="path to dataset")
+    
     # parser.add_argument("--deepfake-set", default="biggan", action="store_true")        
     parser.add_argument("--output-dir", type=str, default="../CoOp/outputs/", help="output directory")
     parser.add_argument(
