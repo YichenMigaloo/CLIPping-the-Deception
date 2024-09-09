@@ -41,7 +41,7 @@ class progan(DatasetBase):
         '''
         text_file = os.path.join(self.dataset_dir, "classnames.txt")
         classnames = self.read_classnames(text_file)
-        train = self.read_data(classnames, "train")
+        #train = self.read_data(classnames, "train")
         test = self.read_data(classnames, "val")
 
         num_shots = cfg.DATASET.NUM_SHOTS
