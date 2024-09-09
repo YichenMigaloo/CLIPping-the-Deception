@@ -190,7 +190,7 @@ class DatasetWrapper(TorchDataset):
     def __init__(self, cfg, data_source, transform=None, is_train=False):
         self.cfg = cfg
         self.data_source = data_source
-        print("datasource = "+data_source)
+        print("datasource = "+ self.data_source)
         self.transform = transform  # accept list (tuple) as input
         self.is_train = is_train
         # Augmenting an image K>1 times is only allowed during training
@@ -227,8 +227,6 @@ class DatasetWrapper(TorchDataset):
             "impath": item.path,
             "index": idx
         }
-        print('data path = ' + item.path)
-
         
         img0 = read_image(item.impath)
 
