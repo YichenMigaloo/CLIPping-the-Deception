@@ -13,7 +13,7 @@ import time
 # from utils import extract_left_eye_center, extract_right_eye_center, get_rotation_matrix, crop_image
 from skimage import transform as trans
 # from color_transfer import color_transfer
-from dataprocess.utils.warp import gen_warp_params, warp_by_params, warp_mask
+from warp import gen_warp_params, warp_by_params, warp_mask
 
 
 def crop_img_bbox(img, bbox, res, scale=1.3):
