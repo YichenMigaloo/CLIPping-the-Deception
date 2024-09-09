@@ -1,6 +1,6 @@
 import numpy
 
-from dataprocess.utils.umeyama import umeyama
+from umeyama import umeyama
 from numpy.linalg import inv
 import cv2
 
