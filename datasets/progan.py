@@ -43,9 +43,7 @@ class progan(DatasetBase):
         classnames = self.read_classnames(text_file)
         train = self.read_data(classnames, "train")
         test = self.read_data(classnames, "val")
-        preprocessed = {"train": train, "test": test}
-        with open(self.preprocessed, "wb") as f:
-            pickle.dump(preprocessed, f, protocol=pickle.HIGHEST_PROTOCOL)
+        
 
         num_shots = cfg.DATASET.NUM_SHOTS
         if num_shots >= 1:
