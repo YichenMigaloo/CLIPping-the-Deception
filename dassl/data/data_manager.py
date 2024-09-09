@@ -223,10 +223,12 @@ class DatasetWrapper(TorchDataset):
         output = {
             "label": item.label,
             "domain": item.domain,
-            "impath": item.impath,
+            "impath": item.impath.replace("C:\Users\Sohail\Desktop\Research\PhD\Year3\DeepfakeDetection\Datasets\ICMRDataset\test\deepfake_eval\progan\images\val\n01440764\","/content/CLIPping-the-Deception/deepfake_eval/progan/images/val/n01440764"),
             "index": idx
         }
         print('data path = ' + item.impath)
+
+        
         img0 = read_image(item.impath)
 
         if self.transform is not None:
