@@ -223,7 +223,7 @@ class DatasetWrapper(TorchDataset):
         output = {
             "label": item.label,
             "domain": item.domain,
-            "impath": item.path,
+            "impath": item.impath,
             "index": idx
         }
         
