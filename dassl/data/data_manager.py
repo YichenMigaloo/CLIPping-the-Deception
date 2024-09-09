@@ -13,7 +13,7 @@ from .transforms import INTERPOLATION_MODES, build_transform
 def build_data_loader(
     cfg,
     sampler_type="SequentialSampler",
-    data_source=None,
+    data_source='/content/CLIPping-the-Deception/deepfake_eval',
     batch_size=64,
     n_domain=0,
     n_ins=2,
