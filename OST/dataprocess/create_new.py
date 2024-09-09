@@ -2,11 +2,11 @@
 import os
 import cv2
 
-from OST.dataprocess.utils.face_blend import *
-from OST.dataprocess.utils.face_align import get_align_mat_new
-from OST.dataprocess.utils.color_transfer import color_transfer
-from OST.dataprocess.utils.faceswap_utils import blendImages as alpha_blend_fea
-from OST.dataprocess.utils import faceswap
+from .utils.face_blend import *
+from .utils.face_align import get_align_mat_new
+from .utils.color_transfer import color_transfer
+from .utils.faceswap_utils import blendImages as alpha_blend_fea
+from .utils import faceswap
 
 
 
