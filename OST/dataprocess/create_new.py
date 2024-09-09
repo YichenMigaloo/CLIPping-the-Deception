@@ -3,10 +3,10 @@ import os
 import cv2
 
 
-from util.face_align import align_face  # face_align.py
-from util.faceswap import swap_faces  # faceswap.py
-from util.face_blend import blend_faces  # face_blend.py
-from util.color_transfer import color_transfer  
+from utils.face_align import align_face  # face_align.py
+from utils.faceswap import swap_faces  # faceswap.py
+from utils.face_blend import blend_faces  # face_blend.py
+from utils.color_transfer import color_transfer  
 
 
 
