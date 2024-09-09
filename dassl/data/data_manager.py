@@ -190,6 +190,7 @@ class DatasetWrapper(TorchDataset):
     def __init__(self, cfg, data_source, transform=None, is_train=False):
         self.cfg = cfg
         self.data_source = data_source
+        print("datasource = "+data_source)
         self.transform = transform  # accept list (tuple) as input
         self.is_train = is_train
         # Augmenting an image K>1 times is only allowed during training
@@ -219,17 +220,14 @@ class DatasetWrapper(TorchDataset):
 
     def __getitem__(self, idx):
         item = self.data_source[idx]
-        modified_path = item.impath.replace(
-            r"C:\Users\Sohail\Desktop\Research\PhD\Year3\DeepfakeDetection\Datasets\ICMRDataset\test\deepfake_eval\progan\images\val\n01440764\", 
-            r"/content/CLIPping-the-Deception/deepfake_eval/progan/images/val/n01440764/"
-            )
+        
         output = {
             "label": item.label,
             "domain": item.domain,
-            "impath": modified_path,
+            "impath": item.path,
             "index": idx
         }
-        print('data path = ' + modified_path)
+        print('data path = ' + item.path)
 
         
         img0 = read_image(item.impath)
