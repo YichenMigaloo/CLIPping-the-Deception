@@ -143,7 +143,7 @@ def setup_cfg(args):
 def get_parsed_args(model_dir, dataset_name):
     parser = argparse.ArgumentParser()
     parser.add_argument("--root", type=str, default="../Datasets/ICMRDataset/test/deepfake_eval/", help="path to dataset")
-    # parser.add_argument("--deepfake-set", default="biggan", action="store_true")        
+    parser.add_argument("--deepfake-set", default="biggan", action="store_true")        
     parser.add_argument("--output-dir", type=str, default="../CoOp/outputs/", help="output directory")
     parser.add_argument(
         "--resume",
