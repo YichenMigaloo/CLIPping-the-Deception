@@ -195,7 +195,6 @@ class DatasetWrapper(TorchDataset):
         # Augmenting an image K>1 times is only allowed during training
         self.k_tfm = cfg.DATALOADER.K_TRANSFORMS if is_train else 1
         self.return_img0 = cfg.DATALOADER.RETURN_IMG0
-        print("datasource = "+ str(self.data_source))
 
         if self.k_tfm > 1 and transform is None:
             raise ValueError(
