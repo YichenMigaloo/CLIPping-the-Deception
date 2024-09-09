@@ -229,7 +229,7 @@ class DatasetWrapper(TorchDataset):
             "impath": modified_path,
             "index": idx
         }
-        print('data path = ' + item.impath)
+        print('data path = ' + modified_path)
 
         
         img0 = read_image(item.impath)
