@@ -190,12 +190,12 @@ class DatasetWrapper(TorchDataset):
     def __init__(self, cfg, data_source, transform=None, is_train=False):
         self.cfg = cfg
         self.data_source = data_source
-        print("datasource = "+ str(self.data_source))
         self.transform = transform  # accept list (tuple) as input
         self.is_train = is_train
         # Augmenting an image K>1 times is only allowed during training
         self.k_tfm = cfg.DATALOADER.K_TRANSFORMS if is_train else 1
         self.return_img0 = cfg.DATALOADER.RETURN_IMG0
+        print("datasource = "+ str(self.data_source))
 
         if self.k_tfm > 1 and transform is None:
             raise ValueError(
