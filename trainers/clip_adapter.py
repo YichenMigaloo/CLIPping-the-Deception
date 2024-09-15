@@ -232,7 +232,8 @@ class CLIP_Adapter(TrainerX):
 
             checkpoint = load_checkpoint(model_path)
             state_dict = checkpoint['state_dict']
-            epoch = checkpoint['epoch']
+            #epoch = checkpoint['epoch']
+            epoch = checkpoint[24]
 
             # this is modified for weight ensemble, comment this for clip adapter
             # checkpoint = load_checkpoint(model_path)
