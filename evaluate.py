@@ -279,14 +279,16 @@ def eval_adapter_network(args, dataset_path, dataset_names, image_extensions, de
 def eval_prompt_tuning(args, dataset_path, dataset_names, image_extensions, device):
     print("*************")
     print("Evaluating Prompt Tuning Method!")
-
+    '''
     if '100k_16' in args.model:
         model_names = ['/content/CLIPping-the-Deception/weights/selected_coop_models/100000_16context_best_until_now/prompt_learner']
     elif '100k_8' in args.model:
         model_names = ['content/drive/MyDrive/weights/100000_8context/']
     elif '100k_4' in args.model:
         model_names = ['content/drive/MyDrive/weights/100000_4context/']
-    
+    '''
+
+    model_names = ['/content/CLIPping-the-Deception/train_outputs/coop_100k_2epochs/prompt_learner']
     model_evaluations = {}
     splitted_string = model_names[0].split('/')[-2].split('_')[1]
     num_ctx_tokens = int(re.split('(\d+)',splitted_string)[1])

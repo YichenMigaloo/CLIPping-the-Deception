@@ -30,6 +30,7 @@ import trainers.clip_zero_shot
 import trainers.fine_tuned
 import trainers.cocoop
 import trainers.zsclip
+import trainers.adapter_prompt
 
 
 def print_args(args, cfg):
