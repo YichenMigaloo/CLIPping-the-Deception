@@ -116,11 +116,12 @@ class PromptLearner(nn.Module):
 
     def forward(self):
         # Concatenate prefix, trainable context, and suffix
-        prefix = self.token_prefix
-        suffix = self.token_suffix
         ctx = self.ctx
         if ctx.dim() == 2:
             ctx = ctx.unsqueeze(0).expand(self.n_cls, -1, -1)
+
+        prefix = self.token_prefix
+        suffix = self.token_suffix
 
         prompts = []
         for i in range(self.n_cls):
