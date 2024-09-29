@@ -60,6 +60,7 @@ class PromptLearner(nn.Module):
     def __init__(self, cfg, classnames, clip_model):
         super().__init__()
         n_cls = len(classnames)
+        self.n_cls = n_cls
         n_ctx = cfg.TRAINER.COOP.N_CTX
         ctx_dim = clip_model.ln_final.weight.shape[0]
 
