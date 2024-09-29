@@ -140,7 +140,7 @@ class PromptLearner(nn.Module):
                     dim=1,
                 )
             prompts.append(prompt)
-            prompts = torch.cat(prompts, dim=0)
+        prompts = torch.cat(prompts, dim=0)
         
         return prompts
 
