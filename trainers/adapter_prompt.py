@@ -1,8 +1,21 @@
+import os.path as osp
+import numpy as np
+
 import torch
 import torch.nn as nn
-from clip import clip
+from torch.nn import functional as F
+from torch.cuda.amp import GradScaler, autocast
 
-# Adapter from Model 1
+from dassl.engine import TRAINER_REGISTRY, TrainerX
+from dassl.metrics import compute_accuracy
+from dassl.utils import load_pretrained_weights, load_checkpoint
+from dassl.optim import build_optimizer, build_lr_scheduler
+
+from clip import clip
+from clip.simple_tokenizer import SimpleTokenizer as _Tokenizer
+_tokenizer = _Tokenizer()
+
+# Adapter from the first model
 class Adapter(nn.Module):
     def __init__(self, c_in, reduction=4):
         super(Adapter, self).__init__()
@@ -17,7 +30,7 @@ class Adapter(nn.Module):
         x = self.fc(x)
         return x
 
-# PromptLearner from Model 2
+# PromptLearner from the second model
 class PromptLearner(nn.Module):
     def __init__(self, cfg, classnames, clip_model):
         super().__init__()
@@ -29,11 +42,14 @@ class PromptLearner(nn.Module):
         ctx_vectors = torch.empty(n_cls, n_ctx, ctx_dim)
         nn.init.normal_(ctx_vectors, std=0.02)
         self.ctx = nn.Parameter(ctx_vectors)
-        
+
         # Token prefix and suffix (non-trainable parts)
-        self.token_prefix = clip_model.token_embedding(torch.zeros(1))  # Example placeholder
-        self.token_suffix = clip_model.token_embedding(torch.zeros(1))  # Example placeholder
-        
+        classnames = [name.replace("_", " ") for name in classnames]
+        self.token_prefix = clip_model.token_embedding(clip.tokenize("X")).type(clip_model.dtype)
+        self.token_suffix = clip_model.token_embedding(clip.tokenize(".")).type(clip_model.dtype)
+
+        self.class_token_position = cfg.TRAINER.COOP.CLASS_TOKEN_POSITION
+
     def forward(self):
         # Concatenate prefix, trainable context, and suffix
         return torch.cat([self.token_prefix, self.ctx, self.token_suffix], dim=1)
@@ -56,7 +72,7 @@ class CustomCLIP(nn.Module):
         prompts = self.prompt_learner()
         tokenized_prompts = torch.cat([clip.tokenize(c) for c in classnames])
         text_features = self.text_encoder(prompts)
-        
+
         # Image processing: Adapter after Image Encoder
         image_features = self.image_encoder(image.type(self.dtype))
         adapted_image_features = self.adapter(image_features)
@@ -70,3 +86,54 @@ class CustomCLIP(nn.Module):
         logits = logit_scale * image_features @ text_features.t()
 
         return logits
+
+# Trainer class combining both models and integrating training for Adapter and PromptLearner
+@TrainerX.register()
+class UnifiedTrainer(TrainerX):
+    def build_model(self):
+        cfg = self.cfg
+        classnames = self.dm.dataset.classnames
+        print(f"Loading CLIP (backbone: {cfg.MODEL.BACKBONE.NAME})")
+        clip_model = load_clip_to_cpu(cfg)
+
+        if cfg.TRAINER.COOP.PREC == "fp32" or cfg.TRAINER.COOP.PREC == "amp":
+            clip_model.float()
+
+        print("Building unified CLIP model")
+        self.model = CustomCLIP(cfg, classnames, clip_model)
+
+        print("Turning off gradients in both the image and text encoder (except trainable parts)")
+        for name, param in self.model.named_parameters():
+            if "prompt_learner" not in name and "adapter" not in name:
+                param.requires_grad_(False)
+
+        if cfg.MODEL.INIT_WEIGHTS:
+            load_pretrained_weights(self.model, cfg.MODEL.INIT_WEIGHTS)
+
+        self.model.to(self.device)
+        self.optim = build_optimizer(self.model.parameters(), cfg.OPTIM)
+        self.sched = build_lr_scheduler(self.optim, cfg.OPTIM)
+
+    def forward_backward(self, batch):
+        image, label = self.parse_batch_train(batch)
+        
+        output = self.model(image, self.dm.dataset.classnames)
+        loss = F.cross_entropy(output, label)
+        self.model_backward_and_update(loss)
+
+        loss_summary = {
+            "loss": loss.item(),
+            "acc": compute_accuracy(output, label)[0].item(),
+        }
+
+        if (self.batch_idx + 1) == self.num_batches:
+            self.update_lr()
+
+        return loss_summary
+
+    def parse_batch_train(self, batch):
+        input = batch["img"]
+        label = batch["label"]
+        input = input.to(self.device)
+        label = label.to(self.device)
+        return input, label
