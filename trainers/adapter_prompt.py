@@ -15,6 +15,31 @@ from clip import clip
 from clip.simple_tokenizer import SimpleTokenizer as _Tokenizer
 _tokenizer = _Tokenizer()
 
+# Tokenization function with exception handling
+def tokenize_prompts(classnames):
+    try:
+        return torch.cat([clip.tokenize(c) for c in classnames])
+    except Exception as e:
+        print(f"Error during tokenization: {e}")
+        return None
+
+def load_clip_to_cpu(cfg):
+    backbone_name = cfg.MODEL.BACKBONE.NAME
+    url = clip._MODELS[backbone_name]
+    model_path = clip._download(url)
+
+    try:
+        # loading JIT archive
+        model = torch.jit.load(model_path, map_location="cpu").eval()
+        state_dict = None
+
+    except RuntimeError:
+        state_dict = torch.load(model_path, map_location="cpu")
+
+    model = clip.build_model(state_dict or model.state_dict())
+
+    return model
+
 # Adapter from the first model
 class Adapter(nn.Module):
     def __init__(self, c_in, reduction=4):
@@ -70,7 +95,9 @@ class CustomCLIP(nn.Module):
     def forward(self, image, classnames):
         # Text processing: Prompt Tuning
         prompts = self.prompt_learner()
-        tokenized_prompts = torch.cat([clip.tokenize(c) for c in classnames])
+        tokenized_prompts = tokenize_prompts(classnames)
+        if tokenized_prompts is None:
+            return None
         text_features = self.text_encoder(prompts)
 
         # Image processing: Adapter after Image Encoder
@@ -88,7 +115,7 @@ class CustomCLIP(nn.Module):
         return logits
 
 # Trainer class combining both models and integrating training for Adapter and PromptLearner
-@TrainerX.register()
+@TRAINER_REGISTRY.register()
 class UnifiedTrainer(TrainerX):
     def build_model(self):
         cfg = self.cfg
@@ -114,12 +141,25 @@ class UnifiedTrainer(TrainerX):
         self.optim = build_optimizer(self.model.parameters(), cfg.OPTIM)
         self.sched = build_lr_scheduler(self.optim, cfg.OPTIM)
 
+        if torch.cuda.device_count() > 1:
+            print(f"Multiple GPUs detected ({torch.cuda.device_count()} GPUs), using DataParallel")
+            self.model = nn.DataParallel(self.model)
+
     def forward_backward(self, batch):
         image, label = self.parse_batch_train(batch)
-        
-        output = self.model(image, self.dm.dataset.classnames)
-        loss = F.cross_entropy(output, label)
-        self.model_backward_and_update(loss)
+
+        if self.cfg.TRAINER.COOP.PREC == "amp":
+            with autocast():
+                output = self.model(image, self.dm.dataset.classnames)
+                loss = F.cross_entropy(output, label)
+            self.optim.zero_grad()
+            scaler.scale(loss).backward()
+            scaler.step(self.optim)
+            scaler.update()
+        else:
+            output = self.model(image, self.dm.dataset.classnames)
+            loss = F.cross_entropy(output, label)
+            self.model_backward_and_update(loss)
 
         loss_summary = {
             "loss": loss.item(),
