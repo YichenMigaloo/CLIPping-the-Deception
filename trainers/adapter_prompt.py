@@ -73,11 +73,39 @@ class PromptLearner(nn.Module):
         self.token_prefix = clip_model.token_embedding(clip.tokenize("X")).type(clip_model.dtype)
         self.token_suffix = clip_model.token_embedding(clip.tokenize(".")).type(clip_model.dtype)
 
-        self.class_token_position = cfg.TRAINER.COOP.CLASS_TOKEN_POSITION
+        #self.class_token_position = cfg.TRAINER.COOP.CLASS_TOKEN_POSITION
 
     def forward(self):
         # Concatenate prefix, trainable context, and suffix
-        return torch.cat([self.token_prefix, self.ctx, self.token_suffix], dim=1)
+        prefix = self.token_prefix
+        suffix = self.token_suffix
+        ctx = self.ctx
+        if ctx.dim() == 2:
+            ctx = ctx.unsqueeze(0).expand(self.n_cls, -1, -1)
+
+        prompts = []
+        for i in range(self.n_cls):
+            name_len = self.name_lens[i]
+            prefix_i = prefix[i : i + 1, :, :]
+            class_i = suffix[i : i + 1, :name_len, :]
+            suffix_i = suffix[i : i + 1, name_len:, :]
+            ctx_i = ctx[i : i + 1, :, :]
+            prompt = torch.cat(
+                    [
+                        prefix_i,  # (1, 1, dim)
+                        class_i,   # (1, name_len, dim)
+                        ctx_i,     # (1, n_ctx, dim)
+                        suffix_i,  # (1, *, dim)
+                    ],
+                    dim=1,
+                )
+            prompts.append(prompt)
+            prompts = torch.cat(prompts, dim=0)
+        
+        return prompts
+
+
+
 
 # CustomCLIP integrating both Adapter and PromptLearner
 class CustomCLIP(nn.Module):
