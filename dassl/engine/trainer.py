@@ -167,7 +167,8 @@ class TrainerBase:
                 self._scheds[name]
             )
 
-        return start_epoch
+        #return start_epoch
+        return 0
 
     def load_model(self, directory, epoch=None):
         if not directory:
