@@ -278,7 +278,7 @@ class UnifiedTrainer(TrainerX):
                 output = self.model(image, self.dm.dataset.classnames)
                 loss = F.cross_entropy(output, label)
             self.optim.zero_grad()
-            scaler.scale(loss).backward()
+            scaler.scale(loss).backward(retain_graph = True)
             scaler.step(self.optim)
             scaler.update()
         else:
