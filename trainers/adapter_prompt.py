@@ -64,7 +64,17 @@ class TextEncoder(nn.Module):
         self.dtype = clip_model.dtype
 
     def forward(self, prompts, tokenized_prompts):
-        x = prompts + self.positional_embedding.type(self.dtype)
+        # Adjust positional embeddings to match the sequence length of prompts
+        seq_length = prompts.shape[1]  # Get the sequence length of prompts
+        positional_embedding = self.positional_embedding[:seq_length, :].type(self.dtype)
+
+        # Ensure shapes are compatible for addition
+        if positional_embedding.shape[0] != prompts.shape[1]:
+            raise ValueError(f"Positional embedding shape {positional_embedding.shape} does not match prompt shape {prompts.shape}")
+
+        # Add positional embedding to prompts
+        x = prompts + positional_embedding
+        
         x = x.permute(1, 0, 2)  # NLD -> LND for transformer
         x = self.transformer(x)  # Pass through transformer
         x = x.permute(1, 0, 2)  # LND -> NLD after transformer
@@ -74,6 +84,7 @@ class TextEncoder(nn.Module):
         x = x[torch.arange(x.shape[0]), tokenized_prompts.argmax(dim=-1)] @ self.text_projection
 
         return x
+
 
 # PromptLearner from the second model
 class PromptLearner(nn.Module):
