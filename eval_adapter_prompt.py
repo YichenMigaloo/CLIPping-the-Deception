@@ -118,7 +118,7 @@ def extend_cfg_adapter(cfg):
 
 
 
-def setup_cfg_adapter(args):
+def setup_cfg_adapter_prompt(args):
     cfg = get_cfg_default()
     extend_cfg_adapter(cfg)
 
@@ -140,7 +140,7 @@ def setup_cfg_adapter(args):
 
     return cfg
 
-def get_parsed_args_adapter(model_dir, dataset_name, dataset_path):
+def get_parsed_args_adapter_prompt(model_dir, dataset_name, dataset_path):
     parser = argparse.ArgumentParser(allow_abbrev=True)
     parser.add_argument("--root", type=str, default=dataset_path, help="path to dataset")
     #parser.add_argument("--root", type=str, default='/content/CLIPping-the-Deception/deepfake_eval', help="path to dataset")

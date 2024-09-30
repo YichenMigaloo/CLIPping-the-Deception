@@ -72,7 +72,7 @@ import trainers.fine_tuned
 from eval_utils import print_args, reset_cfg, extend_cfg, setup_cfg, get_parsed_args
 from eval_utils_fine_tuned import print_args_fine_tuned, reset_cfg_fine_tuned, extend_cfg_fine_tuned, setup_cfg_fine_tuned, get_parsed_args_fine_tuned
 from eval_utils_adapter import print_args_adapter, reset_cfg_adapter, extend_cfg_adapter, setup_cfg_adapter, get_parsed_args_adapter
-
+from eval_adapter_prompt import setup_cfg_adapter_prompt, get_parsed_args_adapter_prompt
 
 def seed_everything(seed):
         random.seed(seed)
