@@ -252,6 +252,7 @@ class UnifiedTrainer(TrainerX):
         for name, param in self.model.named_parameters():
             if "prompt_learner" not in name and "adapter" not in name:
                 param.requires_grad_(False)
+        print(f"Registered model names: {self.get_model_names()}")
 
         if cfg.MODEL.INIT_WEIGHTS:
             load_pretrained_weights(self.model, cfg.MODEL.INIT_WEIGHTS)
