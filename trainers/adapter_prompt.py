@@ -222,11 +222,15 @@ class CustomCLIP(nn.Module):
         image_features = adapted_image_features / adapted_image_features.norm(dim=-1, keepdim=True)
         text_features = text_features / text_features.norm(dim=-1, keepdim=True)
 
+        # Ensure both image_features and text_features have the same dtype
+        text_features = text_features.to(image_features.dtype)
+
         # CLIP-style logits computation
         logit_scale = self.logit_scale.exp()
         logits = logit_scale * image_features @ text_features.t()
 
         return logits
+
 
 
 # Trainer class combining both models and integrating training for Adapter and PromptLearner
