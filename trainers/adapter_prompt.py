@@ -156,7 +156,7 @@ class PromptLearner(nn.Module):
             ctx = ctx.unsqueeze(0).expand(self.n_cls, -1, -1)
 
         # Ensure all components (prefix, ctx, suffix) have compatible shapes before concatenation
-        print(f"Prefix shape: {prefix.shape}, Context shape: {ctx.shape}, Suffix shape: {suffix.shape}")
+        #print(f"Prefix shape: {prefix.shape}, Context shape: {ctx.shape}, Suffix shape: {suffix.shape}")
 
         # List to hold all prompts
         prompts = []  # Initialize as an empty list
@@ -168,7 +168,7 @@ class PromptLearner(nn.Module):
             ctx_i = ctx[i : i + 1, :, :]  # Correctly slice the context for class i
             
             # Ensure that prefix, ctx, and suffix are compatible for concatenation
-            print(f"Prefix_i shape: {prefix_i.shape}, Context_i shape: {ctx_i.shape}, Suffix_i shape: {suffix_i.shape}")
+            #print(f"Prefix_i shape: {prefix_i.shape}, Context_i shape: {ctx_i.shape}, Suffix_i shape: {suffix_i.shape}")
             
             # Check if dimensions match (except for dimension 1, which can vary)
             if prefix_i.shape[2] != ctx_i.shape[2] or ctx_i.shape[2] != suffix_i.shape[2]:
@@ -268,7 +268,7 @@ class UnifiedTrainer(TrainerX):
             self.model = nn.DataParallel(self.model)
 
         # Print registered model names for debugging
-        print(f"Registered model names: {self.get_model_names()}")
+        #print(f"Registered model names: {self.get_model_names()}")
 
     def forward_backward(self, batch):
         image, label = self.parse_batch_train(batch)
