@@ -493,8 +493,8 @@ class SimpleTrainer(TrainerBase):
     '''
     def get_current_lr(self, names=None):
         names = self.get_model_names(names)
-        print(f"Registered model names: {self.get_model_names()}")
-        print(f"Registered models: {self._models}")
+        #print(f"Registered model names: {self.get_model_names()}")
+        #print(f"Registered models: {self._models}")
 
         # Check if names is empty before accessing it
         if not names:
