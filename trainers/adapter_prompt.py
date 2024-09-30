@@ -192,7 +192,7 @@ class PromptLearner(nn.Module):
 
 
 # CustomCLIP integrating both Adapter and PromptLearner
-class CustomCLIP(nn.Module):
+class AdapterPrompt(nn.Module):
     def __init__(self, cfg, classnames, clip_model):
         super().__init__()
         self.image_encoder = clip_model.visual  # Image encoder from CLIP
@@ -246,7 +246,7 @@ class UnifiedTrainer(TrainerX):
             clip_model.float()
 
         print("Building unified CLIP model")
-        self.model = CustomCLIP(cfg, classnames, clip_model)
+        self.model = AdapterPrompt(cfg, classnames, clip_model)
         self.model.to(self.device)
         print("Turning off gradients in both the image and text encoder (except trainable parts)")
         for name, param in self.model.named_parameters():
@@ -278,7 +278,7 @@ class UnifiedTrainer(TrainerX):
                 output = self.model(image, self.dm.dataset.classnames)
                 loss = F.cross_entropy(output, label)
             self.optim.zero_grad()
-            scaler.scale(loss).backward(retain_graph = True)
+            scaler.scale(loss).backward()
             scaler.step(self.optim)
             scaler.update()
         else:
