@@ -104,6 +104,9 @@ class PromptLearner(nn.Module):
         if ctx.dim() == 2:
             ctx = ctx.unsqueeze(0).expand(self.n_cls, -1, -1)
 
+        # Ensure all components (prefix, ctx, suffix) have compatible shapes before concatenation
+        print(f"Prefix shape: {prefix.shape}, Context shape: {ctx.shape}, Suffix shape: {suffix.shape}")
+
         # List to hold all prompts
         prompts = []  # Initialize as an empty list
 
@@ -112,6 +115,14 @@ class PromptLearner(nn.Module):
             prefix_i = prefix[i : i + 1, :, :]
             suffix_i = suffix[i : i + 1, :, :]
             ctx_i = ctx[i : i + 1, :, :]
+            
+            # Ensure that prefix, ctx, and suffix are compatible for concatenation
+            print(f"Prefix_i shape: {prefix_i.shape}, Context_i shape: {ctx_i.shape}, Suffix_i shape: {suffix_i.shape}")
+            
+            # Check if dimensions match (except for dimension 1, which can vary)
+            if prefix_i.shape[2] != ctx_i.shape[2] or ctx_i.shape[2] != suffix_i.shape[2]:
+                raise ValueError(f"Dimension mismatch: Prefix_i shape: {prefix_i.shape}, Context_i shape: {ctx_i.shape}, Suffix_i shape: {suffix_i.shape}")
+
             prompt = torch.cat(
                     [
                         prefix_i,  # (1, 1, dim)
@@ -126,6 +137,7 @@ class PromptLearner(nn.Module):
         prompts = torch.cat(prompts, dim=0)  # Convert list of tensors into a single tensor
         
         return prompts
+
 
 
 # CustomCLIP integrating both Adapter and PromptLearner
