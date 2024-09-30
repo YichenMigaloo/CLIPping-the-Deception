@@ -66,7 +66,12 @@ class TextEncoder(nn.Module):
     def forward(self, prompts, tokenized_prompts):
         # Adjust positional embeddings to match the sequence length of prompts
         seq_length = prompts.shape[1]  # Get the sequence length of prompts
-        positional_embedding = self.positional_embedding[:seq_length, :].type(self.dtype)
+
+        if seq_length > self.positional_embedding.shape[0]:
+            # Extend the positional embedding to match the new sequence length
+            positional_embedding = self._extend_positional_embeddings(seq_length).type(self.dtype)
+        else:
+            positional_embedding = self.positional_embedding[:seq_length, :].type(self.dtype)
 
         # Ensure shapes are compatible for addition
         if positional_embedding.shape[0] != prompts.shape[1]:
@@ -84,6 +89,19 @@ class TextEncoder(nn.Module):
         x = x[torch.arange(x.shape[0]), tokenized_prompts.argmax(dim=-1)] @ self.text_projection
 
         return x
+
+    def _extend_positional_embeddings(self, target_length):
+        """Extend the positional embeddings to match the required sequence length."""
+        current_length = self.positional_embedding.shape[0]
+        # If we need more tokens, we can either repeat the positional embeddings or interpolate them
+        if target_length > current_length:
+            # Here we simply repeat the positional embeddings to extend them (other methods could be used)
+            repeat_factor = (target_length // current_length) + 1
+            extended_positional_embedding = self.positional_embedding.repeat(repeat_factor, 1)[:target_length, :]
+            return extended_positional_embedding
+        else:
+            return self.positional_embedding
+
 
 
 # PromptLearner from the second model
