@@ -257,7 +257,8 @@ class UnifiedTrainer(TrainerX):
             load_pretrained_weights(self.model, cfg.MODEL.INIT_WEIGHTS)
 
         self.model.to(self.device)
-        self.optim = build_optimizer(self.model.parameters(), cfg.OPTIM)
+        #self.optim = build_optimizer(self.model.parameters(), cfg.OPTIM)
+        self.optim = build_optimizer(self.model.prompt_learner, cfg.OPTIM)
         self.sched = build_lr_scheduler(self.optim, cfg.OPTIM)
 
         if torch.cuda.device_count() > 1:
