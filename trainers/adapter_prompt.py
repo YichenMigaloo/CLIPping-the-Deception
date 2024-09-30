@@ -50,6 +50,8 @@ class Adapter(nn.Module):
         )
 
     def forward(self, x):
+        # Ensure the input and weights have the same dtype (casting to the correct type)
+        x = x.to(self.fc[0].weight.dtype)
         x = self.fc(x)
         return x
 
@@ -212,7 +214,9 @@ class CustomCLIP(nn.Module):
 
         # Image processing: Adapter after Image Encoder
         image_features = self.image_encoder(image.type(self.dtype))
-        adapted_image_features = self.adapter(image_features)
+
+        # Ensure image features are cast to the correct dtype before passing to the adapter
+        adapted_image_features = self.adapter(image_features.to(self.adapter.fc[0].weight.dtype))
 
         # Normalizing features
         image_features = adapted_image_features / adapted_image_features.norm(dim=-1, keepdim=True)
