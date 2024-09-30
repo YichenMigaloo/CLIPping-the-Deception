@@ -108,7 +108,10 @@ class TextEncoder(nn.Module):
             return extended_positional_embedding
         else:
             return self.positional_embedding
-
+    def _update_attention_mask(self, seq_length):
+        """Update the attention mask to match the sequence length."""
+        # Create a new attention mask with the correct shape (seq_length, seq_length)
+        self.attn_mask = torch.full((seq_length, seq_length), float("-inf")).triu(1)  # Upper triangular mask
 
 
 
