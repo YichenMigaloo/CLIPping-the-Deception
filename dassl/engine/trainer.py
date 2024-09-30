@@ -290,7 +290,7 @@ class TrainerBase:
 
     def model_backward(self, loss):
         self.detect_anomaly(loss)
-        loss.backward()
+        loss.backward(retain_graph=True)
 
     def model_update(self, names=None):
         names = self.get_model_names(names)
