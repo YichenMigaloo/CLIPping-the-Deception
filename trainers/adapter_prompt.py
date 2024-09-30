@@ -90,9 +90,11 @@ class PromptLearner(nn.Module):
         self.ctx = nn.Parameter(ctx_vectors)
 
         # Token prefix and suffix (non-trainable parts)
+        # We need to ensure that the prefix and suffix are initialized for each class
         classnames = [name.replace("_", " ") for name in classnames]
-        self.token_prefix = clip_model.token_embedding(clip.tokenize("X")).type(clip_model.dtype)
-        self.token_suffix = clip_model.token_embedding(clip.tokenize(".")).type(clip_model.dtype)
+        tokenized_classnames = clip.tokenize(classnames)
+        self.token_prefix = clip_model.token_embedding(tokenized_classnames[:, :1]).type(clip_model.dtype)  # First token (CLS)
+        self.token_suffix = clip_model.token_embedding(tokenized_classnames[:, 1:]).type(clip_model.dtype)  # Remaining tokens (CLS removed)
 
     def forward(self):
         # Ensure everything is on the same device
@@ -112,9 +114,9 @@ class PromptLearner(nn.Module):
 
         # For each class, concatenate prefix, context, and suffix
         for i in range(self.n_cls):
-            prefix_i = prefix[i : i + 1, :, :]
-            suffix_i = suffix[i : i + 1, :, :]
-            ctx_i = ctx[i : i + 1, :, :]
+            prefix_i = prefix[i : i + 1, :, :]  # Correctly slice the prefix for class i
+            suffix_i = suffix[i : i + 1, :, :]  # Correctly slice the suffix for class i
+            ctx_i = ctx[i : i + 1, :, :]  # Correctly slice the context for class i
             
             # Ensure that prefix, ctx, and suffix are compatible for concatenation
             print(f"Prefix_i shape: {prefix_i.shape}, Context_i shape: {ctx_i.shape}, Suffix_i shape: {suffix_i.shape}")
