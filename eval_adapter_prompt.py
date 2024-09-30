@@ -39,7 +39,7 @@ import trainers.coop
 import trainers.clip_adapter
 import trainers.cocoop
 import trainers.zsclip
-
+import trainers.adapter_prompt
 
 def print_args_adapter(args, cfg):
     print("***************")
@@ -192,9 +192,6 @@ def get_parsed_args_adapter(model_dir, dataset_name, dataset_path):
         nargs=argparse.REMAINDER,
         help="modify config options using the command-line",
     )
-    # parser.add_argument(
-    #     "--num_ctx_tokens", default=num_ctx_tokens, help="do not call trainer.train()"
-    # )
     
     args, unknown_args = parser.parse_known_args()
 
