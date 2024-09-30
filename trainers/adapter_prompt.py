@@ -80,8 +80,15 @@ class TextEncoder(nn.Module):
         # Add positional embedding to prompts
         x = prompts + positional_embedding
         
+        # Cast tensors to ensure consistent data types (to avoid Float/Half precision mismatch)
+        x = x.to(self.dtype)
+        
         x = x.permute(1, 0, 2)  # NLD -> LND for transformer
-        x = self.transformer(x)  # Pass through transformer
+
+        # Use autocast for mixed precision training to ensure the right precision
+        with torch.cuda.amp.autocast():
+            x = self.transformer(x)  # Pass through transformer
+
         x = x.permute(1, 0, 2)  # LND -> NLD after transformer
         x = self.ln_final(x).type(self.dtype)
 
@@ -101,6 +108,7 @@ class TextEncoder(nn.Module):
             return extended_positional_embedding
         else:
             return self.positional_embedding
+
 
 
 
