@@ -95,10 +95,12 @@ class PromptLearner(nn.Module):
         self.token_suffix = clip_model.token_embedding(clip.tokenize(".")).type(clip_model.dtype)
 
     def forward(self):
-        # Concatenate prefix, trainable context, and suffix
-        prefix = self.token_prefix
-        suffix = self.token_suffix
-        ctx = self.ctx
+        # Ensure everything is on the same device
+        device = self.ctx.device
+        prefix = self.token_prefix.to(device)
+        suffix = self.token_suffix.to(device)
+        ctx = self.ctx.to(device)
+        
         if ctx.dim() == 2:
             ctx = ctx.unsqueeze(0).expand(self.n_cls, -1, -1)
 
@@ -124,6 +126,7 @@ class PromptLearner(nn.Module):
         prompts = torch.cat(prompts, dim=0)  # Convert list of tensors into a single tensor
         
         return prompts
+
 
 # CustomCLIP integrating both Adapter and PromptLearner
 class CustomCLIP(nn.Module):
