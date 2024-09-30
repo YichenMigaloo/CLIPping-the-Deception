@@ -485,12 +485,27 @@ class SimpleTrainer(TrainerBase):
         label = label.to(self.device)
 
         return input, label
-
+    '''
     def get_current_lr(self, names=None):
         names = self.get_model_names(names)
         name = names[0]
         return self._optims[name].param_groups[0]["lr"]
-
+    '''
+    def get_current_lr(self, names=None):
+        names = self.get_model_names(names)
+        
+        # Check if names is empty before accessing it
+        if not names:
+            raise ValueError("No model names found. Make sure the model has been properly initialized and the optimizer is set up.")
+        
+        name = names[0]
+        
+        # Check if the optimizer exists for this model
+        if name not in self._optims:
+            raise ValueError(f"Optimizer for model '{name}' not found. Ensure the model and optimizer are properly initialized.")
+        
+        # Return the current learning rate from the optimizer
+        return self._optims[name].param_groups[0]["lr"]
 
 class TrainerXU(SimpleTrainer):
     """A base trainer using both labeled and unlabeled data.
