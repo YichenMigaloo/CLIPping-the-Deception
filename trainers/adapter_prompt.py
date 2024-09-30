@@ -54,6 +54,8 @@ class Adapter(nn.Module):
         return x
 
 # Custom TextEncoder to process tokenized prompts and transformer-based encoding
+
+
 class TextEncoder(nn.Module):
     def __init__(self, clip_model):
         super().__init__()
@@ -62,13 +64,14 @@ class TextEncoder(nn.Module):
         self.ln_final = clip_model.ln_final
         self.text_projection = clip_model.text_projection
         self.dtype = clip_model.dtype
+        self.attn_mask = None  # Store the attention mask for the transformer
 
     def forward(self, prompts, tokenized_prompts):
         # Adjust positional embeddings to match the sequence length of prompts
         seq_length = prompts.shape[1]  # Get the sequence length of prompts
 
+        # Extend or slice the positional embeddings to match the prompt sequence length
         if seq_length > self.positional_embedding.shape[0]:
-            # Extend the positional embedding to match the new sequence length
             positional_embedding = self._extend_positional_embeddings(seq_length).type(self.dtype)
         else:
             positional_embedding = self.positional_embedding[:seq_length, :].type(self.dtype)
@@ -82,8 +85,11 @@ class TextEncoder(nn.Module):
         
         # Cast tensors to ensure consistent data types (to avoid Float/Half precision mismatch)
         x = x.to(self.dtype)
-        
+
         x = x.permute(1, 0, 2)  # NLD -> LND for transformer
+
+        # Update attention mask to match the sequence length
+        self._update_attention_mask(seq_length)
 
         # Use autocast for mixed precision training to ensure the right precision
         with torch.cuda.amp.autocast():
@@ -100,18 +106,19 @@ class TextEncoder(nn.Module):
     def _extend_positional_embeddings(self, target_length):
         """Extend the positional embeddings to match the required sequence length."""
         current_length = self.positional_embedding.shape[0]
-        # If we need more tokens, we can either repeat the positional embeddings or interpolate them
         if target_length > current_length:
-            # Here we simply repeat the positional embeddings to extend them (other methods could be used)
             repeat_factor = (target_length // current_length) + 1
             extended_positional_embedding = self.positional_embedding.repeat(repeat_factor, 1)[:target_length, :]
             return extended_positional_embedding
         else:
             return self.positional_embedding
+
     def _update_attention_mask(self, seq_length):
         """Update the attention mask to match the sequence length."""
-        # Create a new attention mask with the correct shape (seq_length, seq_length)
-        self.attn_mask = torch.full((seq_length, seq_length), float("-inf")).triu(1)  # Upper triangular mask
+        for layer in self.transformer.resblocks:
+            layer.attn_mask = torch.full(
+                (seq_length, seq_length), float("-inf")
+            ).triu(1).to(layer.attn_mask.device)  # Upper triangular mask for attention
 
 
 
@@ -187,13 +194,13 @@ class CustomCLIP(nn.Module):
     def __init__(self, cfg, classnames, clip_model):
         super().__init__()
         self.image_encoder = clip_model.visual  # Image encoder from CLIP
-        self.text_encoder = TextEncoder(clip_model)  # Use the custom TextEncoder here
+        self.text_encoder = TextEncoder(clip_model)  # Use the modified TextEncoder with attention mask
 
         # Integrating both trainable parts: Adapter and PromptLearner
-        self.adapter = Adapter(1024, 4).to(clip_model.dtype)
+        self.adapter = Adapter(1024, 4)
         self.prompt_learner = PromptLearner(cfg, classnames, clip_model)
-        self.logit_scale = clip_model.logit_scale  # Logit scaling factor
-        self.dtype = clip_model.dtype  # Data type (could be fp16, fp32)
+        self.logit_scale = clip_model.logit_scale
+        self.dtype = clip_model.dtype
 
     def forward(self, image, classnames):
         # Text processing: Prompt Tuning
@@ -201,11 +208,6 @@ class CustomCLIP(nn.Module):
         tokenized_prompts = tokenize_prompts(classnames)
         if tokenized_prompts is None:
             return None
-
-        # Ensure the tokenized_prompts is a LongTensor
-        tokenized_prompts = tokenized_prompts.long()
-
-        # Use custom TextEncoder for encoding
         text_features = self.text_encoder(prompts, tokenized_prompts)
 
         # Image processing: Adapter after Image Encoder
@@ -221,6 +223,7 @@ class CustomCLIP(nn.Module):
         logits = logit_scale * image_features @ text_features.t()
 
         return logits
+
 
 # Trainer class combining both models and integrating training for Adapter and PromptLearner
 @TRAINER_REGISTRY.register()
