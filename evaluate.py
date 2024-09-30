@@ -373,7 +373,7 @@ def main(args):
         eval_fine_tuning(args, dataset_path, dataset_names, image_extensions, device)
     elif args.variant == 'adapterNetwork':
         eval_adapter_network(args, dataset_path, dataset_names, image_extensions, device)
-    elif args.variant == 'AdapterPrompt':
+    elif args.variant == 'adapterPrompt':
         eval_adapter_prompt_network(args, dataset_path, dataset_names, image_extensions, device)
     else:
         print('Unrecognized method!!!')
