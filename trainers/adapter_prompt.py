@@ -247,24 +247,28 @@ class UnifiedTrainer(TrainerX):
 
         print("Building unified CLIP model")
         self.model = CustomCLIP(cfg, classnames, clip_model)
-
+        self.model.to(self.device)
         print("Turning off gradients in both the image and text encoder (except trainable parts)")
         for name, param in self.model.named_parameters():
             if "prompt_learner" not in name and "adapter" not in name:
                 param.requires_grad_(False)
-        print(f"Registered model names: {self.get_model_names()}")
 
-        if cfg.MODEL.INIT_WEIGHTS:
-            load_pretrained_weights(self.model, cfg.MODEL.INIT_WEIGHTS)
-
-        self.model.to(self.device)
-        #self.optim = build_optimizer(self.model.parameters(), cfg.OPTIM)
-        self.optim = build_optimizer(self.model.prompt_learner, cfg.OPTIM)
+        # Ensure optimizer is initialized with trainable parameters
+        trainable_params = filter(lambda p: p.requires_grad, self.model.parameters())
+        self.optim = build_optimizer(trainable_params, cfg.OPTIM)
         self.sched = build_lr_scheduler(self.optim, cfg.OPTIM)
+
+        # Manual registration of model and optimizer
+        self._models["clip_adapter"] = self.model
+        self._optims["clip_adapter"] = self.optim
+        self._scheds["clip_adapter"] = self.sched
 
         if torch.cuda.device_count() > 1:
             print(f"Multiple GPUs detected ({torch.cuda.device_count()} GPUs), using DataParallel")
             self.model = nn.DataParallel(self.model)
+
+        # Print registered model names for debugging
+        print(f"Registered model names: {self.get_model_names()}")
 
     def forward_backward(self, batch):
         image, label = self.parse_batch_train(batch)
