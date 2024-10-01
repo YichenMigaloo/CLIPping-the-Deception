@@ -475,10 +475,10 @@ class SimpleTrainer(TrainerBase):
         return list(results.values())[0], results
 
     def model_inference(self, input):
-        #return self.model(input)
-        classnames = self.dm.dataset.classnames  # Fetch classnames from dataset manager
+        return self.model(input)
+        '''classnames = self.dm.dataset.classnames  # Fetch classnames from dataset manager
         return self.model(input, classnames)  # Pass classnames to the model
-
+'''
     def parse_batch_test(self, batch):
         input = batch["img"]
         label = batch["label"]
