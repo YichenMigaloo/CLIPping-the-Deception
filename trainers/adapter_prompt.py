@@ -121,7 +121,7 @@ class TextEncoder(nn.Module):
             layer.attn_mask = torch.full(
                 (seq_length, seq_length), float("-inf")
             ).triu(1).to(layer.attn_mask.device)  # Upper triangular mask for attention
-            
+
 # PromptLearner from the second model
 class PromptLearner(nn.Module):
     def __init__(self, cfg, classnames, clip_model):
@@ -201,10 +201,12 @@ class AdapterPrompt(nn.Module):
         self.logit_scale = clip_model.logit_scale
         self.dtype = clip_model.dtype
 
+        self.classnames = classnames
+
     def forward(self, image, classnames):
         # Text processing: Prompt Tuning
         prompts = self.prompt_learner()
-        tokenized_prompts = tokenize_prompts(classnames)
+        tokenized_prompts = tokenize_prompts(self.classnames)
         if tokenized_prompts is None:
             return None
         text_features = self.text_encoder(prompts, tokenized_prompts)
