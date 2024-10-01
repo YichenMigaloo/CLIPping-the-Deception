@@ -89,7 +89,7 @@ def reset_cfg_adapter(cfg, args):
     #     cfg.TRAINER.COOP.N_CTX = args.num_ctx_tokens
 
 
-def extend_cfg_adapter(cfg):
+def extend_cfg_adapter_prompt(cfg):
     """
     Add new config variables.
 
@@ -120,7 +120,7 @@ def extend_cfg_adapter(cfg):
 
 def setup_cfg_adapter_prompt(args):
     cfg = get_cfg_default()
-    extend_cfg_adapter(cfg)
+    extend_cfg_adapter_prompt(cfg)
 
     # 1. From the dataset config file
     if args.dataset_config_file:

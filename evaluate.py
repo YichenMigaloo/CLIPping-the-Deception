@@ -329,7 +329,7 @@ def eval_adapter_prompt_network(args, dataset_path, dataset_names, image_extensi
     
     for dataset in dataset_names:
         coop_args = get_parsed_args_adapter_prompt(model_names[0], dataset, dataset_path)
-        cfg = setup_cfg_adapter(coop_args)
+        cfg = setup_cfg_adapter_prompt(coop_args)
         print("Setting fixed seed: {}".format(cfg.SEED))
         set_random_seed(cfg.SEED)
         if torch.cuda.is_available() and cfg.USE_CUDA:
