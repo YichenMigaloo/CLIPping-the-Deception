@@ -112,7 +112,8 @@ class TextEncoder(nn.Module):
         """Update the attention mask to match the sequence length."""
         for layer in self.transformer.resblocks:
             layer.attn_mask = torch.full(
-                (seq_length, seq_length), float("-inf")
+                #(seq_length, seq_length), float("-inf")
+                (77,77),float("-inf")
             ).triu(1).to(layer.attn_mask.device)  # Upper triangular mask for attention
 
 
