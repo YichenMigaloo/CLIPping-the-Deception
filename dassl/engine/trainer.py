@@ -475,10 +475,10 @@ class SimpleTrainer(TrainerBase):
         return list(results.values())[0], results
 
     def model_inference(self, input):
-        return self.model(input)
-        '''classnames = self.dm.dataset.classnames  # Fetch classnames from dataset manager
+        #return self.model(input)
+        classnames = self.dm.dataset.classnames  # Fetch classnames from dataset manager
         return self.model(input, classnames)  # Pass classnames to the model
-'''
+
     def parse_batch_test(self, batch):
         input = batch["img"]
         label = batch["label"]
@@ -487,12 +487,12 @@ class SimpleTrainer(TrainerBase):
         label = label.to(self.device)
 
         return input, label
-    '''
+    
     def get_current_lr(self, names=None):
         names = self.get_model_names(names)
         name = names[0]
         return self._optims[name].param_groups[0]["lr"]
-    '''
+    
     def get_current_lr(self, names=None):
         names = self.get_model_names(names)
         #print(f"Registered model names: {self.get_model_names()}")
