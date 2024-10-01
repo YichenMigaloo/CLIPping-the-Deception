@@ -113,7 +113,7 @@ class TextEncoder(nn.Module):
         for layer in self.transformer.resblocks:
             layer.attn_mask = torch.full(
                 #(seq_length, seq_length), float("-inf")
-                (77,77),float("-inf")
+                (93,93),float("-inf")
             ).triu(1).to(layer.attn_mask.device)  # Upper triangular mask for attention
 
 
