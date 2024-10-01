@@ -66,54 +66,47 @@ class TextEncoder(nn.Module):
         self.ln_final = clip_model.ln_final
         self.text_projection = clip_model.text_projection
         self.dtype = clip_model.dtype
-        self.attn_mask = None  # Store the attention mask for the transformer
 
     def forward(self, prompts, tokenized_prompts):
         # Adjust positional embeddings to match the sequence length of prompts
         seq_length = prompts.shape[1]  # Get the sequence length of prompts
 
-        # Extend or slice the positional embeddings to match the prompt sequence length
-        if seq_length > self.positional_embedding.shape[0]:
-            positional_embedding = self._extend_positional_embeddings(seq_length).type(self.dtype)
-        else:
-            positional_embedding = self.positional_embedding[:seq_length, :].type(self.dtype)
-
-        # Ensure shapes are compatible for addition
-        if positional_embedding.shape[0] != prompts.shape[1]:
-            raise ValueError(f"Positional embedding shape {positional_embedding.shape} does not match prompt shape {prompts.shape}")
-
+        # Ensure positional embeddings match the prompt sequence length
+        positional_embedding = self._get_positional_embeddings(seq_length)
+        
         # Add positional embedding to prompts
         x = prompts + positional_embedding
-        
-        # Cast tensors to ensure consistent data types (to avoid Float/Half precision mismatch)
+
+        # Ensure dtype consistency (especially if using AMP)
         x = x.to(self.dtype)
 
+        # Transformer expects input in LND format
         x = x.permute(1, 0, 2)  # NLD -> LND for transformer
 
-        # Update attention mask to match the sequence length
-        self._update_attention_mask(seq_length)
+        # Apply transformer
+        x = self.transformer(x)
 
-        # Use autocast for mixed precision training to ensure the right precision
-        with torch.cuda.amp.autocast():
-            x = self.transformer(x)  # Pass through transformer
+        # Return to NLD format after transformer
+        x = x.permute(1, 0, 2)
 
-        x = x.permute(1, 0, 2)  # LND -> NLD after transformer
-        x = self.ln_final(x).type(self.dtype)
+        # Apply final layer normalization
+        x = self.ln_final(x)
 
         # Take features from the end-of-token (eot) embedding
-        x = x[torch.arange(x.shape[0]), tokenized_prompts.argmax(dim=-1)] @ self.text_projection
+        eot_indices = tokenized_prompts.argmax(dim=-1)  # End-of-token index for each prompt
+        x = x[torch.arange(x.shape[0]), eot_indices] @ self.text_projection
 
         return x
 
-    def _extend_positional_embeddings(self, target_length):
-        """Extend the positional embeddings to match the required sequence length."""
-        current_length = self.positional_embedding.shape[0]
-        if target_length > current_length:
-            repeat_factor = (target_length // current_length) + 1
-            extended_positional_embedding = self.positional_embedding.repeat(repeat_factor, 1)[:target_length, :]
-            return extended_positional_embedding
+    def _get_positional_embeddings(self, seq_length):
+        """Extend or slice positional embeddings to match the required sequence length."""
+        if seq_length > self.positional_embedding.shape[0]:
+            repeat_factor = (seq_length // self.positional_embedding.shape[0]) + 1
+            extended_positional_embedding = self.positional_embedding.repeat(repeat_factor, 1)[:seq_length, :]
         else:
-            return self.positional_embedding
+            extended_positional_embedding = self.positional_embedding[:seq_length, :]
+        return extended_positional_embedding.type(self.dtype)
+
 
     def _update_attention_mask(self, seq_length):
         """Update the attention mask to match the sequence length."""
