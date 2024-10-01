@@ -77,6 +77,11 @@ class TextEncoder(nn.Module):
         # Add positional embedding to prompts
         x = prompts + positional_embedding
 
+        # Update attention mask to match the sequence length
+        self._update_attention_mask(seq_length)
+
+        # Apply transformer
+        x = self.transformer(x)
         # Ensure dtype consistency (especially if using AMP)
         x = x.to(self.dtype)
 
@@ -111,12 +116,11 @@ class TextEncoder(nn.Module):
     def _update_attention_mask(self, seq_length):
         """Update the attention mask to match the sequence length."""
         for layer in self.transformer.resblocks:
-            layer.attn_mask = torch.full(
-                (seq_length, seq_length), float("-inf")
-                
-            ).triu(1).to(layer.attn_mask.device)  # Upper triangular mask for attention
-
-
+            # Update attn_mask only if sequence length exceeds the default mask size
+            if layer.attn_mask.shape[0] != seq_length:
+                layer.attn_mask = torch.full(
+                    (seq_length, seq_length), float("-inf")
+                ).triu(1).to(layer.attn_mask.device)  # Upper triangular mask for attention
 
 # PromptLearner from the second model
 class PromptLearner(nn.Module):
