@@ -197,7 +197,6 @@ class AdapterPrompt(nn.Module):
         super().__init__()
         self.image_encoder = clip_model.visual  # Image encoder from CLIP
         self.text_encoder = TextEncoder(clip_model)  # Use the modified TextEncoder with attention mask
-
         # Integrating both trainable parts: Adapter and PromptLearner
         self.adapter = Adapter(1024, 4)
         self.prompt_learner = PromptLearner(cfg, classnames, clip_model)
@@ -239,6 +238,7 @@ class UnifiedTrainer(TrainerX):
     def build_model(self):
         cfg = self.cfg
         classnames = self.dm.dataset.classnames
+        print(f"Classnames:{classnames}")
         print(f"Loading CLIP (backbone: {cfg.MODEL.BACKBONE.NAME})")
         clip_model = load_clip_to_cpu(cfg)
 
