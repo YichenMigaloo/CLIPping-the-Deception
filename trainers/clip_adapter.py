@@ -164,7 +164,7 @@ class CLIP_Adapter(TrainerX):
 
         model_parameters = filter(lambda p: p.requires_grad, self.model.parameters())
         params = sum([np.prod(p.size()) for p in model_parameters])
-        print('Trainable Parameters: ', str(params))
+        #print('Trainable Parameters: ', str(params))
 
         if cfg.MODEL.INIT_WEIGHTS:
             load_pretrained_weights(self.model.adapter, cfg.MODEL.INIT_WEIGHTS)
