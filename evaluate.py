@@ -328,7 +328,7 @@ def eval_adapter_prompt_network(args, dataset_path, dataset_names, image_extensi
     args.parser = dummy_parse_args()
     
     for dataset in dataset_names:
-        coop_args = get_parsed_args_adapter(model_names[0], dataset, dataset_path)
+        coop_args = get_parsed_args_adapter_prompt(model_names[0], dataset, dataset_path)
         cfg = setup_cfg_adapter(coop_args)
         print("Setting fixed seed: {}".format(cfg.SEED))
         set_random_seed(cfg.SEED)
