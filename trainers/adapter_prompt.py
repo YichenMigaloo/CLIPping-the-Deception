@@ -201,12 +201,11 @@ class AdapterPrompt(nn.Module):
         self.logit_scale = clip_model.logit_scale
         self.dtype = clip_model.dtype
 
-        self.classnames = classnames
 
     def forward(self, image, classnames):
         # Text processing: Prompt Tuning
         prompts = self.prompt_learner()
-        tokenized_prompts = tokenize_prompts(self.classnames)
+        tokenized_prompts = tokenize_prompts(classnames)
         if tokenized_prompts is None:
             return None
         text_features = self.text_encoder(prompts, tokenized_prompts)
@@ -229,6 +228,8 @@ class AdapterPrompt(nn.Module):
         logits = logit_scale * image_features @ text_features.t()
 
         return logits
+    
+
 
 
 
@@ -295,6 +296,7 @@ class UnifiedTrainer(TrainerX):
             self.update_lr()
 
         return loss_summary
+    
 
     def parse_batch_train(self, batch):
         input = batch["img"]
@@ -302,3 +304,5 @@ class UnifiedTrainer(TrainerX):
         input = input.to(self.device)
         label = label.to(self.device)
         return input, label
+
+
