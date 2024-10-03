@@ -319,7 +319,35 @@ def eval_adapter_prompt_network(args, dataset_path, dataset_names, image_extensi
     print("Evaluating Adapter + Prompt Tuning Method!")
 
     model_names = ['/content/CLIPping-the-Deception/train_outputs/improve_2epochs/']
-    
+
+    model_evaluations = {}
+    splitted_string = model_names[0].split('/')[-2].split('_')[1]
+    num_ctx_tokens = int(re.split('(\d+)',splitted_string)[1])
+    print('Num. Context Tokens: ', num_ctx_tokens)
+    args.parser = dummy_parse_args()
+    for dataset in dataset_names:
+        coop_args = get_parsed_args(model_names[0], dataset, num_ctx_tokens, dataset_path)
+        cfg = setup_cfg(coop_args)
+        print("Setting fixed seed: {}".format(cfg.SEED))
+        set_random_seed(cfg.SEED)
+        if torch.cuda.is_available() and cfg.USE_CUDA:
+            print('Using CUDA!!!')
+            torch.backends.cudnn.benchmark = True
+
+        print_args(coop_args, cfg)
+        print("Collecting env info ...")
+        print("** System info **\n{}\n".format(collect_env_info()))
+
+        trainer = build_trainer(cfg)
+        trainer.load_model(coop_args.model_dir, epoch=coop_args.load_epoch)
+
+        results, results_dict = trainer.test()
+        update_and_save_evaluation(model_names[0], dataset, results_dict['accuracy'], results_dict['macro_f1'], results_dict['average_precision'], args.output, model_evaluations)
+
+
+
+
+    '''
     model_evaluations = {}
     splitted_string = model_names[0].split('/')[-2].split('_')[1]
     #num_ctx_tokens = int(re.split('(\d+)',splitted_string)[1])
@@ -345,7 +373,7 @@ def eval_adapter_prompt_network(args, dataset_path, dataset_names, image_extensi
 
         results, results_dict = trainer.test()
         update_and_save_evaluation(model_names[0], dataset, results_dict['accuracy'], results_dict['macro_f1'], results_dict['average_precision'], args.output, model_evaluations)
-
+'''
 
 def main(args):
     print("Starting Evaluation!")
