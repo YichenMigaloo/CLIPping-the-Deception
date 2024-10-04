@@ -8,7 +8,8 @@ import torch.nn as nn
 from tqdm import tqdm
 from torch.utils.tensorboard import SummaryWriter
 from torch.utils.data import DataLoader
-from torchvision import datasets, transforms
+from torchvision import transforms
+from torchvision import datasets as torchvision_datasets
 
 from dassl.data import DataManager
 from dassl.optim import build_optimizer, build_lr_scheduler
@@ -486,19 +487,19 @@ class SimpleTrainer(TrainerBase):
         ])
         
         # Define DataLoader for ProGAN dataset
-        progan_dataset = datasets.ImageFolder(root='/content/CLIPping-the-Deception/deepfake_eval/progan', transform=transform)
+        progan_dataset = torchvision_datasets.ImageFolder(root='/content/CLIPping-the-Deception/deepfake_eval/progan', transform=transform)
         progan_loader = DataLoader(progan_dataset, batch_size=32, shuffle=False)
 
         # Define DataLoader for BigGAN dataset
-        biggan_dataset = datasets.ImageFolder(root='/content/CLIPping-the-Deception/deepfake_eval/biggan', transform=transform)
+        biggan_dataset = torchvision_datasets.ImageFolder(root='/content/CLIPping-the-Deception/deepfake_eval/biggan', transform=transform)
         biggan_loader = DataLoader(biggan_dataset, batch_size=32, shuffle=False)
 
         # Define DataLoader for CycleGAN dataset
-        cyclegan_dataset = datasets.ImageFolder(root='/content/CLIPping-the-Deception/deepfake_eval/cyclegan', transform=transform)
+        cyclegan_dataset = torchvision_datasets.ImageFolder(root='/content/CLIPping-the-Deception/deepfake_eval/cyclegan', transform=transform)
         cyclegan_loader = DataLoader(cyclegan_dataset, batch_size=32, shuffle=False)
 
         # Define DataLoader for FaceSwap dataset
-        faceswap_dataset = datasets.ImageFolder(root='/content/CLIPping-the-Deception/deepfake_eval/faceswap', transform=transform)
+        faceswap_dataset = torchvision_datasets.ImageFolder(root='/content/CLIPping-the-Deception/deepfake_eval/faceswap', transform=transform)
         faceswap_loader = DataLoader(faceswap_dataset, batch_size=32, shuffle=False)
 
         # List of datasets to evaluate
