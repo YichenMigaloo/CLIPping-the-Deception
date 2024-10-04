@@ -7,9 +7,7 @@ import torch
 import torch.nn as nn
 from tqdm import tqdm
 from torch.utils.tensorboard import SummaryWriter
-from torch.utils.data import DataLoader
-from torchvision import transforms
-from torchvision import datasets as torchvision_datasets
+
 
 from dassl.data import DataManager
 from dassl.optim import build_optimizer, build_lr_scheduler
@@ -480,7 +478,7 @@ class SimpleTrainer(TrainerBase):
 
 
     def model_inference(self, input):
-        return self.model(input)
+        #return self.model(input)
         classnames = self.dm.dataset.classnames  # Fetch classnames from dataset manager
         return self.model(input, classnames)  # Pass classnames to the model
 
