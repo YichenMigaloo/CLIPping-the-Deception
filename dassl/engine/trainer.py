@@ -17,7 +17,8 @@ from dassl.utils import (
 )
 from dassl.modeling import build_head, build_backbone
 from dassl.evaluation import build_evaluator
-
+from torch.utils.data import DataLoader
+from torchvision import datasets, transforms
 
 class SimpleNet(nn.Module):
     """A simple neural network composed of a CNN backbone
@@ -444,7 +445,7 @@ class SimpleTrainer(TrainerBase):
         if meet_checkpoint_freq or last_epoch:
             self.save_model(self.epoch, self.output_dir)
 
-    @torch.no_grad()
+    '''@torch.no_grad()
     def test(self, split=None):
         """A generic testing pipeline."""
         self.set_model_mode("eval")
@@ -472,7 +473,77 @@ class SimpleTrainer(TrainerBase):
             tag = f"{split}/{k}"
             self.write_scalar(tag, v, self.epoch)
 
-        return list(results.values())[0], results
+        return list(results.values())[0], results'''
+    @torch.no_grad()
+    def test(self, split=None):
+        """A generic testing pipeline for evaluating on multiple datasets."""
+        self.set_model_mode("eval")
+        transform = transforms.Compose([
+            transforms.Resize((224, 224)),  # Resize images to the input size expected by the model
+            transforms.ToTensor(),
+            transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])  # Normalize using ImageNet stats
+        ])
+
+        # Define DataLoader for ProGAN dataset
+        progan_dataset = datasets.ImageFolder(root='/content/CLIPping-the-Deception/deepfake_eval/progan', transform=transform)
+        progan_loader = DataLoader(progan_dataset, batch_size=32, shuffle=False)
+
+        # Define DataLoader for BigGAN dataset
+        biggan_dataset = datasets.ImageFolder(root='/content/CLIPping-the-Deception/deepfake_eval/biggan', transform=transform)
+        biggan_loader = DataLoader(biggan_dataset, batch_size=32, shuffle=False)
+
+        # Define DataLoader for CycleGAN dataset
+        cyclegan_dataset = datasets.ImageFolder(root='/content/CLIPping-the-Deception/deepfake_eval/cyclegan', transform=transform)
+        cyclegan_loader = DataLoader(cyclegan_dataset, batch_size=32, shuffle=False)
+
+        # Define DataLoader for FaceSwap dataset
+        faceswap_dataset = datasets.ImageFolder(root='/content/CLIPping-the-Deception/deepfake_eval/faceswap', transform=transform)
+        faceswap_loader = DataLoader(faceswap_dataset, batch_size=32, shuffle=False)
+
+        # List of datasets to evaluate
+        datasets = {
+            "progan": self.progan_loader,   # DataLoader for ProGAN
+            "biggan": self.biggan_loader,   # DataLoader for BigGAN
+            "cyclegan": self.cyclegan_loader,  # DataLoader for CycleGAN
+            "faceswap": self.faceswap_loader  # DataLoader for FaceSwap
+        }
+
+        # List to store results for each dataset
+        results_per_dataset = {}
+
+        # Iterate over each dataset and evaluate
+        for dataset_name, data_loader in datasets.items():
+            if data_loader is None:
+                print(f"No loader found for {dataset_name}")
+                continue
+
+            print(f"Evaluating on the *{dataset_name}* dataset")
+
+            self.evaluator.reset()  # Reset evaluator for fresh metrics calculation
+            for batch_idx, batch in enumerate(tqdm(data_loader)):
+                input, label = self.parse_batch_test(batch)
+                output = self.model_inference(input)
+                self.evaluator.process(output, label)
+
+            # Get evaluation results
+            results = self.evaluator.evaluate()
+
+            # Store results for the dataset
+            results_per_dataset[dataset_name] = results
+
+            # Print results for the dataset
+            print(f"Results for {dataset_name} dataset:")
+            for metric, value in results.items():
+                print(f"{metric}: {value:.4f}")
+
+            # Log results to TensorBoard or other loggers
+            for metric, value in results.items():
+                tag = f"{dataset_name}/{metric}"
+                self.write_scalar(tag, value, self.epoch)
+
+        # Return results for all datasets
+        return results_per_dataset
+
 
     def model_inference(self, input):
         return self.model(input)
