@@ -197,9 +197,12 @@ class TrainerBase:
             state_dict = checkpoint["state_dict"]
             epoch = checkpoint["epoch"]
             val_result = checkpoint["val_result"]
-            print(
-                f"Load {model_path} to {name} (epoch={epoch}, val_result={val_result:.1f})"
-            )
+            if val_result is None:
+                print(f"Load {model_path} to {name} (epoch={epoch}, val_result=None)")
+            else:
+                print(f"Load {model_path} to {name} (epoch={epoch}, val_result={val_result:.1f})")
+
+            
             self._models[name].load_state_dict(state_dict)
 
     def set_model_mode(self, mode="train", names=None):
