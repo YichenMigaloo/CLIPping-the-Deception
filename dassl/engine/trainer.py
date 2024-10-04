@@ -7,6 +7,8 @@ import torch
 import torch.nn as nn
 from tqdm import tqdm
 from torch.utils.tensorboard import SummaryWriter
+from torch.utils.data import DataLoader
+from torchvision import datasets, transforms
 
 from dassl.data import DataManager
 from dassl.optim import build_optimizer, build_lr_scheduler
@@ -17,8 +19,7 @@ from dassl.utils import (
 )
 from dassl.modeling import build_head, build_backbone
 from dassl.evaluation import build_evaluator
-from torch.utils.data import DataLoader
-from torchvision import datasets, transforms
+
 
 class SimpleNet(nn.Module):
     """A simple neural network composed of a CNN backbone
@@ -483,7 +484,7 @@ class SimpleTrainer(TrainerBase):
             transforms.ToTensor(),
             transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])  # Normalize using ImageNet stats
         ])
-
+        
         # Define DataLoader for ProGAN dataset
         progan_dataset = datasets.ImageFolder(root='/content/CLIPping-the-Deception/deepfake_eval/progan', transform=transform)
         progan_loader = DataLoader(progan_dataset, batch_size=32, shuffle=False)
