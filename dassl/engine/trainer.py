@@ -541,6 +541,7 @@ class SimpleTrainer(TrainerBase):
                 tag = f"{dataset_name}/{metric}"
                 self.write_scalar(tag, value, self.epoch)
 
+            print(results_per_dataset)
         # Return results for all datasets
         return results_per_dataset
 
