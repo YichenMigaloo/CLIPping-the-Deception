@@ -54,7 +54,7 @@ def print_args_adapter(args, cfg):
     print("************")
     print(cfg)
 
-def reset_cfg_adapter(cfg, args):
+def reset_cfg_adapter_prompt(cfg, args):
     if args.root:
         cfg.DATASET.ROOT = args.root
 
@@ -131,7 +131,7 @@ def setup_cfg_adapter_prompt(args):
         cfg.merge_from_file(args.config_file)
 
     # 3. From input arguments
-    reset_cfg_adapter(cfg, args)
+    reset_cfg_adapter_prompt(cfg, args)
 
     # 4. From optional input arguments
     # cfg.merge_from_list(args.opts)
@@ -170,7 +170,7 @@ def get_parsed_args_adapter_prompt(model_dir, dataset_name, dataset_path):
     )
     parser.add_argument("--dataset-config-file", type=str, default="CLIPping-the-Deception/configs/datasets/"+str(dataset_name)+".yaml",
         help="path to config file for dataset setup",)
-    parser.add_argument("--trainer", type=str, default="CLIP_Adapter", help="name of trainer")
+    parser.add_argument("--trainer", type=str, default="UnifiedTrainer", help="name of trainer")
     parser.add_argument("--backbone", type=str, default="", help="name of CNN backbone")
     parser.add_argument("--head", type=str, default="", help="name of head")
     parser.add_argument("--eval-only", default="True", action="store_true", help="evaluation only")
