@@ -260,9 +260,9 @@ class UnifiedTrainer(TrainerX):
         self.sched = build_lr_scheduler(self.optim, cfg.OPTIM)
 
         # Manual registration of model and optimizer
-        self._models["UnifiedTrainer"] = self.model
-        self._optims["UnifiedTrainer"] = self.optim
-        self._scheds["UnifiedTrainer"] = self.sched
+        self._models["unifiedtrainer"] = self.model
+        self._optims["unifiedtrainer"] = self.optim
+        self._scheds["unifiedtrainer"] = self.sched
 
         if torch.cuda.device_count() > 1:
             print(f"Multiple GPUs detected ({torch.cuda.device_count()} GPUs), using DataParallel")
