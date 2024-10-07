@@ -40,25 +40,28 @@ def load_clip_to_cpu(cfg):
 
 def load_vit_without_last_layer(cfg):
     
-    backbone_name = cfg.MODEL.BACKBONE.NAME  # Assuming it is "ViT-L/14"
-    url = clip._MODELS[backbone_name]  # Get the model URL
-    model_path = clip._download(url)  # Download the model
+    
+    backbone_name = cfg.MODEL.BACKBONE.NAME
+    url = clip._MODELS[backbone_name]
+    model_path = clip._download(url)
 
     try:
-        # Try loading JIT model, but expect to fallback to state_dict in case we want to modify the layers.
-        state_dict = torch.load(model_path, map_location="cpu")  # Load state_dict instead of JIT
-        model = clip.build_model(state_dict)  # Rebuild model from state_dict
-    except RuntimeError:
+        # Load the state_dict instead of JIT model for flexibility
         state_dict = torch.load(model_path, map_location="cpu")
         model = clip.build_model(state_dict)
+        print("State_dict model loaded")
+    except RuntimeError as e:
+        print(f"Error loading model: {e}")
+        return None
 
     # Access the visual transformer (ViT) part of the CLIP model
     vit_model = model.visual
 
     # Remove the last layer of the ViT model (transformer blocks).
-    vit_model.transformer.resblocks = nn.Sequential(*vit_model.transformer.resblocks[:-1])  # Safely remove the last block
-    
+    vit_model.transformer.resblocks = nn.Sequential(*vit_model.transformer.resblocks[:-1])
+
     return vit_model
+
 
 
 
