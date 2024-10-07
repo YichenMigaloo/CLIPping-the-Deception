@@ -45,22 +45,15 @@ def load_vit_without_last_layer(cfg):
 
     try:
         # Load state_dict instead of JIT model
-        state_dict = torch.jit.load(model_path, map_location="cpu")
-        print(f"State dict loaded, keys: {list(state_dict.keys())}")
-        
-        model = clip.build_model(state_dict)
-        if model is None:
-            raise RuntimeError("clip.build_model returned None. Check state_dict format.")
-        
-        print("State_dict model successfully loaded.")
-    except RuntimeError as e:
-        print(f"Error loading model: {e}")
-        return None
-
+        model = torch.jit.load(model_path, map_location = 'cpu').eval()
+        state_dict =None
+    except RuntimeError:
+        state_dict = torch.load(model_path, map_location="cpu")
     
-
+    
     # Remove the last layer of the ViT model (transformer blocks).
     model.transformer.resblocks = nn.Sequential(*model.transformer.resblocks[:-1])
+    model = clip.build_model(state_dict or model.state_dict())
 
     return model
 
