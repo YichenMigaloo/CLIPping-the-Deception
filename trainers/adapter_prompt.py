@@ -57,13 +57,12 @@ def load_vit_without_last_layer(cfg):
         print(f"Error loading model: {e}")
         return None
 
-    # Access the visual transformer (ViT) part of the CLIP model
-    vit_model = model.visual
+    
 
     # Remove the last layer of the ViT model (transformer blocks).
-    vit_model.transformer.resblocks = nn.Sequential(*vit_model.transformer.resblocks[:-1])
+    model.transformer.resblocks = nn.Sequential(*model.transformer.resblocks[:-1])
 
-    return vit_model
+    return model
 
 
 
