@@ -47,6 +47,8 @@ def load_vit_without_last_layer(cfg):
         # Load state_dict instead of JIT model
         model = torch.jit.load(model_path, map_location = 'cpu').eval()
         state_dict =None
+        model = torch.jit._unwrap_optional(torch.jit._recursive.wrap_cpp_module(model._c))  # unwrap model
+
     except RuntimeError:
         state_dict = torch.load(model_path, map_location="cpu")
     
