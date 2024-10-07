@@ -39,17 +39,20 @@ def load_clip_to_cpu(cfg):
     return model
 
 def load_vit_without_last_layer(cfg):
-    
-    
     backbone_name = cfg.MODEL.BACKBONE.NAME
     url = clip._MODELS[backbone_name]
     model_path = clip._download(url)
 
     try:
-        # Load the state_dict instead of JIT model for flexibility
+        # Load state_dict instead of JIT model
         state_dict = torch.load(model_path, map_location="cpu")
+        print(f"State dict loaded, keys: {list(state_dict.keys())}")
+        
         model = clip.build_model(state_dict)
-        print("State_dict model loaded")
+        if model is None:
+            raise RuntimeError("clip.build_model returned None. Check state_dict format.")
+        
+        print("State_dict model successfully loaded.")
     except RuntimeError as e:
         print(f"Error loading model: {e}")
         return None
@@ -61,6 +64,7 @@ def load_vit_without_last_layer(cfg):
     vit_model.transformer.resblocks = nn.Sequential(*vit_model.transformer.resblocks[:-1])
 
     return vit_model
+
 
 
 
