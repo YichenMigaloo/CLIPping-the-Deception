@@ -39,32 +39,27 @@ def load_clip_to_cpu(cfg):
     return model
 
 def load_vit_without_last_layer(cfg):
+    
     backbone_name = cfg.MODEL.BACKBONE.NAME  # Assuming it is "ViT-L/14"
     url = clip._MODELS[backbone_name]  # Get the model URL
     model_path = clip._download(url)  # Download the model
 
     try:
-        # Loading the JIT model to CPU
-        model = torch.jit.load(model_path, map_location="cpu").eval()
-        state_dict = None
+        # Try loading JIT model, but expect to fallback to state_dict in case we want to modify the layers.
+        state_dict = torch.load(model_path, map_location="cpu")  # Load state_dict instead of JIT
+        model = clip.build_model(state_dict)  # Rebuild model from state_dict
     except RuntimeError:
-        # If JIT loading fails, fallback to state_dict
         state_dict = torch.load(model_path, map_location="cpu")
-        model = clip.build_model(state_dict or model.state_dict())
-    
+        model = clip.build_model(state_dict)
+
     # Access the visual transformer (ViT) part of the CLIP model
     vit_model = model.visual
+
+    # Remove the last layer of the ViT model (transformer blocks).
+    vit_model.transformer.resblocks = nn.Sequential(*vit_model.transformer.resblocks[:-1])  # Safely remove the last block
     
-    # If you want to inspect the structure of the model, you can print it
-    # print(vit_model)
-
-    # Remove the last layer of the ViT model.
-    # Assuming the last layer is a linear layer (fc) or a projection layer.
-    # Use Sequential to remove it (depending on how the model is structured).
-
-    vit_model.transformer.resblocks = vit_model.transformer.resblocks[:-1]  # Remove the last layer from transformer
-
     return vit_model
+
 
 
 # Adapter from the first model
@@ -272,7 +267,7 @@ class UnifiedTrainer(TrainerX):
         print(f"Loading CLIP (backbone: {cfg.MODEL.BACKBONE.NAME})")
         #clip_model = load_clip_to_cpu(cfg)
         clip_model = load_vit_without_last_layer(cfg)
-        
+
         if cfg.TRAINER.COOP.PREC == "fp32" or cfg.TRAINER.COOP.PREC == "amp":
             clip_model.float()
 
