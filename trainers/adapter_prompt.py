@@ -45,7 +45,7 @@ def load_vit_without_last_layer(cfg):
 
     try:
         # Load state_dict instead of JIT model
-        state_dict = torch.load(model_path, map_location="cpu")
+        state_dict = torch.jit.load(model_path, map_location="cpu")
         print(f"State dict loaded, keys: {list(state_dict.keys())}")
         
         model = clip.build_model(state_dict)
