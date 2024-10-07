@@ -52,7 +52,9 @@ def load_vit_without_last_layer(cfg):
     
     
     # Remove the last layer of the ViT model (transformer blocks).
-    model.transformer.resblocks = nn.Sequential(*model.transformer.resblocks[:-1])
+    if hasattr(model.visual, 'proj'):
+        model.visual.proj = torch.nn.Identity()  # 去掉 proj 层，替换为 identity 层
+
     model = clip.build_model(state_dict or model.state_dict())
 
     return model
