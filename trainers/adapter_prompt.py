@@ -44,7 +44,6 @@ def load_vit_without_last_layer(cfg):
     model_path = clip._download(url)
 
     try:
-        # Load state_dict instead of JIT model
         model = torch.jit.load(model_path, map_location = 'cpu').eval()
         state_dict =None
         model = torch.jit._unwrap_optional(torch.jit._recursive.wrap_cpp_module(model._c))  # unwrap model
@@ -58,10 +57,9 @@ def load_vit_without_last_layer(cfg):
     original_forward = model.visual.forward
 
     def forward_without_proj(x):
-        # 应用所有层，除了 proj
         x = original_forward(x)
         if hasattr(model.visual, 'proj'):
-            x = x  # 跳过 proj
+            x = x  
         return x
 
     model.visual.forward = forward_without_proj
