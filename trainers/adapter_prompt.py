@@ -126,7 +126,7 @@ class Adapter(nn.Module):
 
     #Use GELU instead of ReLU
     
-    
+    '''
     def __init__(self, c_in, reduction=4):
         super(Adapter, self).__init__()
         self.fc = nn.Sequential(
@@ -139,11 +139,11 @@ class Adapter(nn.Module):
     def forward(self, x):
         x = x.to(self.fc[0].weight.dtype)
         x = self.fc(x)
-        return x
+        return x'''
     
 
     #Res
-    '''
+    
     def __init__(self, c_in, reduction=4):
         super(Adapter, self).__init__()
         self.fc = nn.Sequential(
@@ -157,7 +157,7 @@ class Adapter(nn.Module):
         x_res = x  
         x = x.to(self.fc[0].weight.dtype)
         x = self.fc(x)
-        return self.relu(x + x_res)  '''
+        return self.relu(x + x_res) 
     
 
     #LayerNorm
