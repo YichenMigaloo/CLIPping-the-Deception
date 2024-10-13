@@ -196,18 +196,24 @@ class Adapter(nn.Module):
     #Self-Attention
     def __init__(self, c_in=768, reduction=4):
         super(Adapter, self).__init__()
-        self.query = nn.Linear(c_in, c_in // reduction, bias=False)
-        self.key = nn.Linear(c_in, c_in // reduction, bias=False)
-        self.value = nn.Linear(c_in, c_in, bias=False)
+        hidden_dim = c_in // reduction  # 768 // 4 = 192
+        self.query = nn.Linear(c_in, hidden_dim, bias=False)  # 768 -> 192
+        self.key = nn.Linear(c_in, hidden_dim, bias=False)    # 768 -> 192
+        self.value = nn.Linear(c_in, c_in, bias=False)        # 768 -> 768
         self.softmax = nn.Softmax(dim=-1)
 
     def forward(self, x):
-        q = self.query(x)  # (batch, seq_len, c_in // reduction)
-        k = self.key(x)    # (batch, seq_len, c_in // reduction)
-        v = self.value(x)  # (batch, seq_len, c_in)
+        # x: (batch_size, seq_len, c_in)
+        q = self.query(x)  # (batch_size, seq_len, hidden_dim)
+        k = self.key(x)    # (batch_size, seq_len, hidden_dim)
+        v = self.value(x)  # (batch_size, seq_len, c_in)
 
-        attention_scores = self.softmax(torch.bmm(q, k.transpose(1, 2)) / (q.size(-1) ** 0.5))
-        out = torch.bmm(attention_scores, v)  # (batch, seq_len, c_in)
+        # 注意力分数计算
+        attention_scores = torch.bmm(q, k.transpose(1, 2)) / (q.size(-1) ** 0.5)
+        attention_scores = self.softmax(attention_scores)  # (batch_size, seq_len, seq_len)
+
+        # 加权求和
+        out = torch.bmm(attention_scores, v)  # (batch_size, seq_len, c_in)
         return out
     
     #MLP
