@@ -383,28 +383,23 @@ class AdapterPrompt(nn.Module):
 
 
     def forward(self, image, classnames):
-        # Text processing: Prompt Tuning
         prompts = self.prompt_learner()
         tokenized_prompts = tokenize_prompts(classnames)
         if tokenized_prompts is None:
             return None
         text_features = self.text_encoder(prompts, tokenized_prompts)
 
-        # Image processing: Adapter after Image Encoder
         image_features = self.image_encoder(image.type(self.dtype))
 
-        # Ensure image features are cast to the correct dtype before passing to the adapter
-        adapted_image_features = self.adapter(image_features.to(self.adapter.fc[0].weight.dtype))
+        #adapted_image_features = self.adapter(image_features.to(self.adapter.fc[0].weight.dtype))
         #adapted_image_features = self.adapter(image_features.to(self.adapter.conv[0].weight.dtype))
+        adapted_image_features = self.adapter(image_features.to(self.adapter.query.weight.dtype))
 
-        # Normalizing features
         image_features = adapted_image_features / adapted_image_features.norm(dim=-1, keepdim=True)
         text_features = text_features / text_features.norm(dim=-1, keepdim=True)
 
-        # Ensure both image_features and text_features have the same dtype
         text_features = text_features.to(image_features.dtype)
 
-        # CLIP-style logits computation
         logit_scale = self.logit_scale.exp()
         logits = logit_scale * image_features @ text_features.t()
 
