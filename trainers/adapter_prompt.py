@@ -182,14 +182,15 @@ class Adapter(nn.Module):
         super(Adapter, self).__init__()
         reduced_c = c_in // reduction
         self.conv = nn.Sequential(
-            nn.Conv1d(768, reduced_c, kernel_size=1, bias=False),  
+            nn.Conv1d(c_in, reduced_c, kernel_size=1, bias=False),
             nn.ReLU(inplace=True),
-            nn.Conv1d(reduced_c, 768, kernel_size=1, bias=False),  
+            nn.Conv1d(reduced_c, c_in, kernel_size=1, bias=False),
             nn.ReLU(inplace=True)
         )
 
     def forward(self, x):
-        x = x.to(self.conv[0].weight.dtype)
+        # x : (batch_size, channels, sequence_length)
+        x = x.to(self.conv[0].weight.dtype) 
         x = self.conv(x)
         return x
     
