@@ -88,7 +88,7 @@ class Adapter(nn.Module):
     
 
     #Dropout
-    
+    '''
     def __init__(self, c_in, reduction=4):
         super(Adapter, self).__init__()
         self.fc = nn.Sequential(
@@ -102,11 +102,11 @@ class Adapter(nn.Module):
     def forward(self, x):
         x = x.to(self.fc[0].weight.dtype)
         x = self.fc(x)
-        return x
+        return x'''
     
 
     #Batch Norm
-    '''
+    
     def __init__(self, c_in, reduction=4):
         super(Adapter, self).__init__()
         self.fc = nn.Sequential(
@@ -121,7 +121,7 @@ class Adapter(nn.Module):
     def forward(self, x):
         x = x.to(self.fc[0].weight.dtype)
         x = self.fc(x)
-        return x'''
+        return x
     
 
     #Use GELU instead of ReLU
