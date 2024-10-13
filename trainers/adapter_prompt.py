@@ -86,13 +86,15 @@ class Adapter(nn.Module):
         x = self.fc(x)
         return x
     
-    '''#Dropout
+
+    #Dropout
+    '''
     def __init__(self, c_in, reduction=4):
         super(Adapter, self).__init__()
         self.fc = nn.Sequential(
             nn.Linear(768, 384, bias=False),
             nn.ReLU(inplace=True),
-            nn.Dropout(0.1),  # 添加 Dropout 层
+            nn.Dropout(0.1),  
             nn.Linear(384, 768, bias=False),
             nn.ReLU(inplace=True)
         )
@@ -102,15 +104,17 @@ class Adapter(nn.Module):
         x = self.fc(x)
         return x'''
     
-    '''#Batch Norm
+
+    #Batch Norm
+    '''
     def __init__(self, c_in, reduction=4):
         super(Adapter, self).__init__()
         self.fc = nn.Sequential(
             nn.Linear(768, 384, bias=False),
-            nn.BatchNorm1d(384),  # 添加 BatchNorm 层
+            nn.BatchNorm1d(384), 
             nn.ReLU(inplace=True),
             nn.Linear(384, 768, bias=False),
-            nn.BatchNorm1d(768),  # 添加 BatchNorm 层
+            nn.BatchNorm1d(768),  
             nn.ReLU(inplace=True)
         )
 
@@ -119,13 +123,15 @@ class Adapter(nn.Module):
         x = self.fc(x)
         return x'''
     
-    '''#Use GELU instead of ReLU
+
+    #Use GELU instead of ReLU
+    '''
     
     def __init__(self, c_in, reduction=4):
         super(Adapter, self).__init__()
         self.fc = nn.Sequential(
             nn.Linear(768, 384, bias=False),
-            nn.GELU(),  # 使用 GELU 激活
+            nn.GELU(),  
             nn.Linear(384, 768, bias=False),
             nn.GELU()
         )
@@ -135,7 +141,9 @@ class Adapter(nn.Module):
         x = self.fc(x)
         return x'''
     
-    '''#Res
+
+    #Res
+    '''
     def __init__(self, c_in, reduction=4):
         super(Adapter, self).__init__()
         self.fc = nn.Sequential(
@@ -151,7 +159,9 @@ class Adapter(nn.Module):
         x = self.fc(x)
         return self.relu(x + x_res)  '''
     
-    '''#LayerNorm
+
+    #LayerNorm
+    '''
     def __init__(self, c_in, reduction=4):
         super(Adapter, self).__init__()
         self.fc = nn.Sequential(
@@ -167,6 +177,65 @@ class Adapter(nn.Module):
         x = self.fc(x)
         return x'''
 
+    #Conv Adapter
+    '''def __init__(self, c_in=768, reduction=4):
+        super(Adapter, self).__init__()
+        reduced_c = c_in // reduction
+        self.conv = nn.Sequential(
+            nn.Conv1d(768, reduced_c, kernel_size=1, bias=False),  
+            nn.ReLU(inplace=True),
+            nn.Conv1d(reduced_c, 768, kernel_size=1, bias=False),  
+            nn.ReLU(inplace=True)
+        )
+
+    def forward(self, x):
+        x = x.to(self.conv[0].weight.dtype)
+        x = self.conv(x)
+        return x'''
+    
+    #Self-Attention
+    '''def __init__(self, c_in=768, reduction=4):
+        super(Adapter, self).__init__()
+        self.query = nn.Linear(c_in, c_in // reduction, bias=False)
+        self.key = nn.Linear(c_in, c_in // reduction, bias=False)
+        self.value = nn.Linear(c_in, c_in, bias=False)
+        self.softmax = nn.Softmax(dim=-1)
+
+    def forward(self, x):
+        q = self.query(x)  # (batch, seq_len, c_in // reduction)
+        k = self.key(x)    # (batch, seq_len, c_in // reduction)
+        v = self.value(x)  # (batch, seq_len, c_in)
+
+        attention_scores = self.softmax(torch.bmm(q, k.transpose(1, 2)) / (q.size(-1) ** 0.5))
+        out = torch.bmm(attention_scores, v)  # (batch, seq_len, c_in)
+        return out'''
+    
+    #MLP
+    '''def __init__(self, c_in=768, reduction=4):
+        super(Adapter, self).__init__()
+        self.mlp = nn.Sequential(
+            nn.Linear(c_in, c_in // reduction, bias=False),
+            nn.ReLU(inplace=True),
+            nn.Linear(c_in // reduction, c_in // reduction, bias=False),
+            nn.ReLU(inplace=True),
+            nn.Linear(c_in // reduction, c_in, bias=False),
+        )
+
+    def forward(self, x):
+        x = x.to(self.mlp[0].weight.dtype)
+        return self.mlp(x)'''
+    
+    #Gated Recurrent Unit
+    '''def __init__(self, c_in=768, hidden_size=128, reduction=4):
+        super(Adapter, self).__init__()
+        self.gru = nn.GRU(input_size=c_in, hidden_size=hidden_size, batch_first=True)
+        self.fc = nn.Linear(hidden_size, c_in)
+
+    def forward(self, x):
+        # x 维度为 (batch_size, sequence_length, c_in)
+        _, h_n = self.gru(x)  
+        out = self.fc(h_n.squeeze(0))  
+        return out'''
 
 
 class TextEncoder(nn.Module):
