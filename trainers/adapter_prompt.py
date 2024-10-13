@@ -405,9 +405,9 @@ class AdapterPrompt(nn.Module):
 
         image_features = self.image_encoder(image.type(self.dtype))
 
-        adapted_image_features = self.adapter(image_features.to(self.adapter.fc[0].weight.dtype))
+        #adapted_image_features = self.adapter(image_features.to(self.adapter.fc[0].weight.dtype))
         #adapted_image_features = self.adapter(image_features.to(self.adapter.conv[0].weight.dtype))
-        #adapted_image_features = self.adapter(image_features.to(self.adapter.query.weight.dtype))
+        adapted_image_features = self.adapter(image_features.to(self.adapter.query.weight.dtype))
 
         image_features = adapted_image_features / adapted_image_features.norm(dim=-1, keepdim=True)
         text_features = text_features / text_features.norm(dim=-1, keepdim=True)
