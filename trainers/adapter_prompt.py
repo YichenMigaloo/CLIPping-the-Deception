@@ -196,32 +196,35 @@ class Adapter(nn.Module):
     #Self-Attention
     def __init__(self, c_in=768, reduction=4):
         super(Adapter, self).__init__()
-        hidden_dim = c_in // reduction  # 降维后的维度 (768 // 4 = 192)
+        hidden_dim = c_in // reduction  # 768 // 4 = 192
 
-        # 定义 Query、Key、Value 线性层
-        self.query = nn.Linear(c_in, hidden_dim, bias=False)
-        self.key = nn.Linear(c_in, hidden_dim, bias=False)
-        self.value = nn.Linear(c_in, c_in, bias=False)
+        # 定义 Query, Key, Value 线性层
+        self.query = nn.Linear(c_in, hidden_dim, bias=False)  # 768 -> 192
+        self.key = nn.Linear(c_in, hidden_dim, bias=False)    # 768 -> 192
+        self.value = nn.Linear(c_in, c_in, bias=False)        # 768 -> 768
 
-        # Softmax 用于归一化注意力分数
+        # Softmax 归一化
         self.softmax = nn.Softmax(dim=-1)
 
     def forward(self, x):
-        # 将输入数据的类型转换为和权重相同的类型
+        # 确保输入数据类型与模型参数一致
         x = x.to(self.query.weight.dtype)
 
-        # Query, Key, Value 投影
+        # 如果输入是 (batch_size, feature_dim)，需要扩展为 (batch_size, 1, feature_dim)
+        if len(x.shape) == 2:
+            x = x.unsqueeze(1)  # 添加一个序列维度
+
+        # Query, Key, Value 计算
         q = self.query(x)  # (batch_size, seq_len, hidden_dim)
         k = self.key(x)    # (batch_size, seq_len, hidden_dim)
         v = self.value(x)  # (batch_size, seq_len, c_in)
 
-        # 计算注意力分数 (batch_size, seq_len, seq_len)
+        # 计算注意力分数并进行 softmax 归一化
         attention_scores = torch.bmm(q, k.transpose(1, 2)) / (q.size(-1) ** 0.5)
-        attention_probs = self.softmax(attention_scores)  # 应用 softmax
+        attention_probs = self.softmax(attention_scores)
 
-        # 通过加权求和值计算输出
+        # 加权求和计算输出
         out = torch.bmm(attention_probs, v)  # (batch_size, seq_len, c_in)
-
         return out
     
     #MLP
