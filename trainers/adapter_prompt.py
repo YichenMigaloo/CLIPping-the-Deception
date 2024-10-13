@@ -161,7 +161,7 @@ class Adapter(nn.Module):
     
 
     #LayerNorm
-    
+    '''
     def __init__(self, c_in, reduction=4):
         super(Adapter, self).__init__()
         self.fc = nn.Sequential(
@@ -175,10 +175,10 @@ class Adapter(nn.Module):
     def forward(self, x):
         x = x.to(self.fc[0].weight.dtype)
         x = self.fc(x)
-        return x
+        return x'''
 
     #Conv Adapter
-    '''def __init__(self, c_in=768, reduction=4):
+    def __init__(self, c_in=768, reduction=4):
         super(Adapter, self).__init__()
         reduced_c = c_in // reduction
         self.conv = nn.Sequential(
@@ -191,7 +191,7 @@ class Adapter(nn.Module):
     def forward(self, x):
         x = x.to(self.conv[0].weight.dtype)
         x = self.conv(x)
-        return x'''
+        return x
     
     #Self-Attention
     '''def __init__(self, c_in=768, reduction=4):
