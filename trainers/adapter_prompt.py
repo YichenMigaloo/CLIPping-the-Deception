@@ -194,7 +194,7 @@ class Adapter(nn.Module):
         return x'''
     
     #Self-Attention
-    def __init__(self, c_in=768, reduction=4):
+    '''def __init__(self, c_in=768, reduction=4):
         super(Adapter, self).__init__()
         hidden_dim = c_in // reduction  # 768 // 4 = 192
 
@@ -225,10 +225,10 @@ class Adapter(nn.Module):
 
         # 加权求和计算输出
         out = torch.bmm(attention_probs, v)  # (batch_size, seq_len, c_in)
-        return out
+        return out'''
     
     #MLP
-    '''def __init__(self, c_in=768, reduction=4):
+    def __init__(self, c_in=768, reduction=4):
         super(Adapter, self).__init__()
         self.mlp = nn.Sequential(
             nn.Linear(c_in, c_in // reduction, bias=False),
@@ -240,7 +240,7 @@ class Adapter(nn.Module):
 
     def forward(self, x):
         x = x.to(self.mlp[0].weight.dtype)
-        return self.mlp(x)'''
+        return self.mlp(x)
     
     #Gated Recurrent Unit
     '''def __init__(self, c_in=768, hidden_size=128, reduction=4):
@@ -410,7 +410,8 @@ class AdapterPrompt(nn.Module):
 
         #adapted_image_features = self.adapter(image_features.to(self.adapter.fc[0].weight.dtype))
         #adapted_image_features = self.adapter(image_features.to(self.adapter.conv[0].weight.dtype))
-        adapted_image_features = self.adapter(image_features.to(self.adapter.query.weight.dtype))
+        #adapted_image_features = self.adapter(image_features.to(self.adapter.query.weight.dtype))
+        adapted_image_features = self.adapter(image_features.to(self.adapter.mlp[0].weight.dtype))
 
         image_features = adapted_image_features / adapted_image_features.norm(dim=-1, keepdim=True)
         text_features = text_features / text_features.norm(dim=-1, keepdim=True)
