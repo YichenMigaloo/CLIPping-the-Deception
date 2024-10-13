@@ -72,7 +72,7 @@ def load_vit_without_last_layer(cfg):
 # Adapter from the first model
 class Adapter(nn.Module):
     #Linear Adapter
-    def __init__(self, c_in, reduction=4):
+    '''def __init__(self, c_in, reduction=4):
         super(Adapter, self).__init__()
         self.fc = nn.Sequential(
             nn.Linear(768, 384, bias=False),
@@ -84,11 +84,11 @@ class Adapter(nn.Module):
     def forward(self, x):
         x = x.to(self.fc[0].weight.dtype)
         x = self.fc(x)
-        return x
+        return x'''
     
 
     #Dropout
-    '''
+    
     def __init__(self, c_in, reduction=4):
         super(Adapter, self).__init__()
         self.fc = nn.Sequential(
@@ -102,7 +102,7 @@ class Adapter(nn.Module):
     def forward(self, x):
         x = x.to(self.fc[0].weight.dtype)
         x = self.fc(x)
-        return x'''
+        return x
     
 
     #Batch Norm
