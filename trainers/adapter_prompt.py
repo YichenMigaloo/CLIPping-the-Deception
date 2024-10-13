@@ -196,24 +196,32 @@ class Adapter(nn.Module):
     #Self-Attention
     def __init__(self, c_in=768, reduction=4):
         super(Adapter, self).__init__()
-        hidden_dim = c_in // reduction  # 768 // 4 = 192
-        self.query = nn.Linear(c_in, hidden_dim, bias=False)  # 768 -> 192
-        self.key = nn.Linear(c_in, hidden_dim, bias=False)    # 768 -> 192
-        self.value = nn.Linear(c_in, c_in, bias=False)        # 768 -> 768
+        hidden_dim = c_in // reduction  # 降维后的维度 (768 // 4 = 192)
+
+        # 定义 Query、Key、Value 线性层
+        self.query = nn.Linear(c_in, hidden_dim, bias=False)
+        self.key = nn.Linear(c_in, hidden_dim, bias=False)
+        self.value = nn.Linear(c_in, c_in, bias=False)
+
+        # Softmax 用于归一化注意力分数
         self.softmax = nn.Softmax(dim=-1)
 
     def forward(self, x):
-        # x: (batch_size, seq_len, c_in)
+        # 将输入数据的类型转换为和权重相同的类型
+        x = x.to(self.query.weight.dtype)
+
+        # Query, Key, Value 投影
         q = self.query(x)  # (batch_size, seq_len, hidden_dim)
         k = self.key(x)    # (batch_size, seq_len, hidden_dim)
         v = self.value(x)  # (batch_size, seq_len, c_in)
 
-        # 注意力分数计算
+        # 计算注意力分数 (batch_size, seq_len, seq_len)
         attention_scores = torch.bmm(q, k.transpose(1, 2)) / (q.size(-1) ** 0.5)
-        attention_scores = self.softmax(attention_scores)  # (batch_size, seq_len, seq_len)
+        attention_probs = self.softmax(attention_scores)  # 应用 softmax
 
-        # 加权求和
-        out = torch.bmm(attention_scores, v)  # (batch_size, seq_len, c_in)
+        # 通过加权求和值计算输出
+        out = torch.bmm(attention_probs, v)  # (batch_size, seq_len, c_in)
+
         return out
     
     #MLP
@@ -397,9 +405,9 @@ class AdapterPrompt(nn.Module):
 
         image_features = self.image_encoder(image.type(self.dtype))
 
-        #adapted_image_features = self.adapter(image_features.to(self.adapter.fc[0].weight.dtype))
+        adapted_image_features = self.adapter(image_features.to(self.adapter.fc[0].weight.dtype))
         #adapted_image_features = self.adapter(image_features.to(self.adapter.conv[0].weight.dtype))
-        adapted_image_features = self.adapter(image_features.to(self.adapter.query.weight.dtype))
+        #adapted_image_features = self.adapter(image_features.to(self.adapter.query.weight.dtype))
 
         image_features = adapted_image_features / adapted_image_features.norm(dim=-1, keepdim=True)
         text_features = text_features / text_features.norm(dim=-1, keepdim=True)
