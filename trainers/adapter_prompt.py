@@ -394,7 +394,8 @@ class AdapterPrompt(nn.Module):
         image_features = self.image_encoder(image.type(self.dtype))
 
         # Ensure image features are cast to the correct dtype before passing to the adapter
-        adapted_image_features = self.adapter(image_features.to(self.adapter.fc[0].weight.dtype))
+        #adapted_image_features = self.adapter(image_features.to(self.adapter.fc[0].weight.dtype))
+        adapted_image_features = self.adapter(image_features.to(self.adapter.conv[0].weight.dtype))
 
         # Normalizing features
         image_features = adapted_image_features / adapted_image_features.norm(dim=-1, keepdim=True)
