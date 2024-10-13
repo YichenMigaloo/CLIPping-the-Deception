@@ -72,7 +72,7 @@ def load_vit_without_last_layer(cfg):
 # Adapter from the first model
 class Adapter(nn.Module):
     #Linear Adapter
-    '''def __init__(self, c_in, reduction=4):
+    def __init__(self, c_in, reduction=4):
         super(Adapter, self).__init__()
         self.fc = nn.Sequential(
             nn.Linear(768, 384, bias=False),
@@ -84,7 +84,7 @@ class Adapter(nn.Module):
     def forward(self, x):
         x = x.to(self.fc[0].weight.dtype)
         x = self.fc(x)
-        return x'''
+        return x
     
 
     #Dropout
@@ -228,7 +228,7 @@ class Adapter(nn.Module):
         return out'''
     
     #MLP
-    def __init__(self, c_in=768, reduction=4):
+    '''def __init__(self, c_in=768, reduction=4):
         super(Adapter, self).__init__()
         self.mlp = nn.Sequential(
             nn.Linear(c_in, c_in // reduction, bias=False),
@@ -240,7 +240,7 @@ class Adapter(nn.Module):
 
     def forward(self, x):
         x = x.to(self.mlp[0].weight.dtype)
-        return self.mlp(x)
+        return self.mlp(x)'''
     
     #Gated Recurrent Unit
     '''def __init__(self, c_in=768, hidden_size=128, reduction=4):
@@ -408,10 +408,10 @@ class AdapterPrompt(nn.Module):
 
         image_features = self.image_encoder(image.type(self.dtype))
 
-        #adapted_image_features = self.adapter(image_features.to(self.adapter.fc[0].weight.dtype))
+        adapted_image_features = self.adapter(image_features.to(self.adapter.fc[0].weight.dtype))
         #adapted_image_features = self.adapter(image_features.to(self.adapter.conv[0].weight.dtype))
         #adapted_image_features = self.adapter(image_features.to(self.adapter.query.weight.dtype))
-        adapted_image_features = self.adapter(image_features.to(self.adapter.mlp[0].weight.dtype))
+        #adapted_image_features = self.adapter(image_features.to(self.adapter.mlp[0].weight.dtype))
 
         image_features = adapted_image_features / adapted_image_features.norm(dim=-1, keepdim=True)
         text_features = text_features / text_features.norm(dim=-1, keepdim=True)
