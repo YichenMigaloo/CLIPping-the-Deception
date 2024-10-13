@@ -71,6 +71,7 @@ def load_vit_without_last_layer(cfg):
 
 # Adapter from the first model
 class Adapter(nn.Module):
+    #Linear Adapter
     def __init__(self, c_in, reduction=4):
         super(Adapter, self).__init__()
         self.fc = nn.Sequential(
@@ -81,12 +82,91 @@ class Adapter(nn.Module):
         )
 
     def forward(self, x):
-        # Ensure the input and weights have the same dtype (casting to the correct type)
         x = x.to(self.fc[0].weight.dtype)
         x = self.fc(x)
         return x
+    
+    '''#Dropout
+    def __init__(self, c_in, reduction=4):
+        super(Adapter, self).__init__()
+        self.fc = nn.Sequential(
+            nn.Linear(768, 384, bias=False),
+            nn.ReLU(inplace=True),
+            nn.Dropout(0.1),  # 添加 Dropout 层
+            nn.Linear(384, 768, bias=False),
+            nn.ReLU(inplace=True)
+        )
 
-# Custom TextEncoder to process tokenized prompts and transformer-based encoding
+    def forward(self, x):
+        x = x.to(self.fc[0].weight.dtype)
+        x = self.fc(x)
+        return x'''
+    
+    '''#Batch Norm
+    def __init__(self, c_in, reduction=4):
+        super(Adapter, self).__init__()
+        self.fc = nn.Sequential(
+            nn.Linear(768, 384, bias=False),
+            nn.BatchNorm1d(384),  # 添加 BatchNorm 层
+            nn.ReLU(inplace=True),
+            nn.Linear(384, 768, bias=False),
+            nn.BatchNorm1d(768),  # 添加 BatchNorm 层
+            nn.ReLU(inplace=True)
+        )
+
+    def forward(self, x):
+        x = x.to(self.fc[0].weight.dtype)
+        x = self.fc(x)
+        return x'''
+    
+    '''#Use GELU instead of ReLU
+    
+    def __init__(self, c_in, reduction=4):
+        super(Adapter, self).__init__()
+        self.fc = nn.Sequential(
+            nn.Linear(768, 384, bias=False),
+            nn.GELU(),  # 使用 GELU 激活
+            nn.Linear(384, 768, bias=False),
+            nn.GELU()
+        )
+
+    def forward(self, x):
+        x = x.to(self.fc[0].weight.dtype)
+        x = self.fc(x)
+        return x'''
+    
+    '''#Res
+    def __init__(self, c_in, reduction=4):
+        super(Adapter, self).__init__()
+        self.fc = nn.Sequential(
+            nn.Linear(768, 384, bias=False),
+            nn.ReLU(inplace=True),
+            nn.Linear(384, 768, bias=False)
+        )
+        self.relu = nn.ReLU(inplace=True)
+
+    def forward(self, x):
+        x_res = x  
+        x = x.to(self.fc[0].weight.dtype)
+        x = self.fc(x)
+        return self.relu(x + x_res)  '''
+    
+    '''#LayerNorm
+    def __init__(self, c_in, reduction=4):
+        super(Adapter, self).__init__()
+        self.fc = nn.Sequential(
+            nn.Linear(768, 384, bias=False),
+            nn.LayerNorm(384),  # 添加 LayerNorm
+            nn.ReLU(inplace=True),
+            nn.Linear(384, 768, bias=False),
+            nn.LayerNorm(768)  # 添加 LayerNorm
+        )
+
+    def forward(self, x):
+        x = x.to(self.fc[0].weight.dtype)
+        x = self.fc(x)
+        return x'''
+
 
 
 class TextEncoder(nn.Module):
