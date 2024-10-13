@@ -189,8 +189,7 @@ class Adapter(nn.Module):
         )
 
     def forward(self, x):
-        # x : (batch_size, channels, sequence_length)
-        x = x.to(self.conv[0].weight.dtype) 
+        x = x.to(self.conv[0].weight.dtype)
         x = self.conv(x)
         return x
     
