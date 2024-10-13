@@ -232,7 +232,7 @@ class Adapter(nn.Module):
         self.fc = nn.Linear(hidden_size, c_in)
 
     def forward(self, x):
-        # x 维度为 (batch_size, sequence_length, c_in)
+        # x : (batch_size, sequence_length, c_in)
         _, h_n = self.gru(x)  
         out = self.fc(h_n.squeeze(0))  
         return out'''
