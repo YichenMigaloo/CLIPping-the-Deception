@@ -178,7 +178,7 @@ class Adapter(nn.Module):
         return x'''
 
     #Conv Adapter
-    def __init__(self, c_in=768, reduction=4):
+    '''def __init__(self, c_in=768, reduction=4):
         super(Adapter, self).__init__()
         reduced_c = c_in // reduction
         self.conv = nn.Sequential(
@@ -191,10 +191,10 @@ class Adapter(nn.Module):
     def forward(self, x):
         x = x.to(self.conv[0].weight.dtype)
         x = self.conv(x)
-        return x
+        return x'''
     
     #Self-Attention
-    '''def __init__(self, c_in=768, reduction=4):
+    def __init__(self, c_in=768, reduction=4):
         super(Adapter, self).__init__()
         self.query = nn.Linear(c_in, c_in // reduction, bias=False)
         self.key = nn.Linear(c_in, c_in // reduction, bias=False)
@@ -208,7 +208,7 @@ class Adapter(nn.Module):
 
         attention_scores = self.softmax(torch.bmm(q, k.transpose(1, 2)) / (q.size(-1) ** 0.5))
         out = torch.bmm(attention_scores, v)  # (batch, seq_len, c_in)
-        return out'''
+        return out
     
     #MLP
     '''def __init__(self, c_in=768, reduction=4):
@@ -394,8 +394,8 @@ class AdapterPrompt(nn.Module):
         image_features = self.image_encoder(image.type(self.dtype))
 
         # Ensure image features are cast to the correct dtype before passing to the adapter
-        #adapted_image_features = self.adapter(image_features.to(self.adapter.fc[0].weight.dtype))
-        adapted_image_features = self.adapter(image_features.to(self.adapter.conv[0].weight.dtype))
+        adapted_image_features = self.adapter(image_features.to(self.adapter.fc[0].weight.dtype))
+        #adapted_image_features = self.adapter(image_features.to(self.adapter.conv[0].weight.dtype))
 
         # Normalizing features
         image_features = adapted_image_features / adapted_image_features.norm(dim=-1, keepdim=True)
