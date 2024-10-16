@@ -13,6 +13,10 @@ from clip import clip
 from clip.simple_tokenizer import SimpleTokenizer as _Tokenizer
 _tokenizer = _Tokenizer()
 
+import torchvision.models as models
+import torchvision.transforms as transforms
+from PIL import Image
+
 # Tokenization function with exception handling
 def tokenize_prompts(classnames):
     try:
@@ -51,8 +55,6 @@ def load_vit_without_last_layer(cfg):
     except RuntimeError:
         state_dict = torch.load(model_path, map_location="cpu")
     
-    
-
     model = clip.build_model(state_dict or model.state_dict())
     original_forward = model.visual.forward
 
@@ -64,10 +66,6 @@ def load_vit_without_last_layer(cfg):
 
     model.visual.forward = forward_without_proj
     return model
-
-
-
-
 
 # Adapter from the first model
 class Adapter(nn.Module):
@@ -85,175 +83,38 @@ class Adapter(nn.Module):
         x = x.to(self.fc[0].weight.dtype)
         x = self.fc(x)
         return x
+
+# Load the Images and Extract Noise Print
+def load_image(image_path):
+    transform = transforms.Compose([
+        transforms.Resize((224, 224)),
+        transforms.ToTensor(),
+        transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+    ])
+    image = Image.open(image_path).convert('RGB')
+    return transform(image).unsqueeze(0)  # Add batch dimension
+
+def extract_noise_print(image):
+    # Dummy noise print extraction (replace with actual noise extraction method)
+    noise = torch.randn_like(image) * 0.1  # Adding random noise as a placeholder
+    return noise
+
+# Merge Function into Existing Code
+def extract_and_fuse_embeddings(model, image_path):
+    # Load the RGB image and the noise print
+    rgb_image = load_image(image_path)
+    noise_print = extract_noise_print(rgb_image)
     
-
-    #Dropout
-    '''
-    def __init__(self, c_in, reduction=4):
-        super(Adapter, self).__init__()
-        self.fc = nn.Sequential(
-            nn.Linear(768, 384, bias=False),
-            nn.ReLU(inplace=True),
-            nn.Dropout(0.1),  
-            nn.Linear(384, 768, bias=False),
-            nn.ReLU(inplace=True)
-        )
-
-    def forward(self, x):
-        x = x.to(self.fc[0].weight.dtype)
-        x = self.fc(x)
-        return x'''
+    # Combine both images into a batch
+    images = torch.cat((rgb_image, noise_print), dim=0)
     
-
-    #Batch Norm
+    # Pass through the network to get embeddings
+    embeddings = model(images)
     
-    '''def __init__(self, c_in, reduction=4):
-        super(Adapter, self).__init__()
-        self.fc = nn.Sequential(
-            nn.Linear(768, 384, bias=False),
-            nn.BatchNorm1d(384), 
-            nn.ReLU(inplace=True),
-            nn.Linear(384, 768, bias=False),
-            nn.BatchNorm1d(768),  
-            nn.ReLU(inplace=True)
-        )
-
-    def forward(self, x):
-        x = x.to(self.fc[0].weight.dtype)
-        x = self.fc(x)
-        return x'''
+    # Combine the Embeddings
+    combined_embedding = torch.cat((embeddings[0], embeddings[1]), dim=0)  # Concatenate embeddings
     
-
-    #Use GELU instead of ReLU
-    
-    '''
-    def __init__(self, c_in, reduction=4):
-        super(Adapter, self).__init__()
-        self.fc = nn.Sequential(
-            nn.Linear(768, 384, bias=False),
-            nn.GELU(),  
-            nn.Linear(384, 768, bias=False),
-            nn.GELU()
-        )
-
-    def forward(self, x):
-        x = x.to(self.fc[0].weight.dtype)
-        x = self.fc(x)
-        return x'''
-    
-
-    #Res
-    '''
-    def __init__(self, c_in, reduction=4):
-        super(Adapter, self).__init__()
-        self.fc = nn.Sequential(
-            nn.Linear(768, 384, bias=False),
-            nn.ReLU(inplace=True),
-            nn.Linear(384, 768, bias=False)
-        )
-        self.relu = nn.ReLU(inplace=True)
-
-    def forward(self, x):
-        x_res = x  
-        x = x.to(self.fc[0].weight.dtype)
-        x = self.fc(x)
-        return self.relu(x + x_res) '''
-    
-
-    #LayerNorm
-    '''
-    def __init__(self, c_in, reduction=4):
-        super(Adapter, self).__init__()
-        self.fc = nn.Sequential(
-            nn.Linear(768, 384, bias=False),
-            nn.LayerNorm(384),  # 添加 LayerNorm
-            nn.ReLU(inplace=True),
-            nn.Linear(384, 768, bias=False),
-            nn.LayerNorm(768)  # 添加 LayerNorm
-        )
-
-    def forward(self, x):
-        x = x.to(self.fc[0].weight.dtype)
-        x = self.fc(x)
-        return x'''
-
-    #Conv Adapter
-    '''def __init__(self, c_in=768, reduction=4):
-        super(Adapter, self).__init__()
-        reduced_c = c_in // reduction
-        self.conv = nn.Sequential(
-            nn.Conv1d(c_in, reduced_c, kernel_size=1, bias=False),
-            nn.ReLU(inplace=True),
-            nn.Conv1d(reduced_c, c_in, kernel_size=1, bias=False),
-            nn.ReLU(inplace=True)
-        )
-
-    def forward(self, x):
-        x = x.to(self.conv[0].weight.dtype)
-        x = self.conv(x)
-        return x'''
-    
-    #Self-Attention
-    '''def __init__(self, c_in=768, reduction=4):
-        super(Adapter, self).__init__()
-        hidden_dim = c_in // reduction  # 768 // 4 = 192
-
-        # 定义 Query, Key, Value 线性层
-        self.query = nn.Linear(c_in, hidden_dim, bias=False)  # 768 -> 192
-        self.key = nn.Linear(c_in, hidden_dim, bias=False)    # 768 -> 192
-        self.value = nn.Linear(c_in, c_in, bias=False)        # 768 -> 768
-
-        # Softmax 归一化
-        self.softmax = nn.Softmax(dim=-1)
-
-    def forward(self, x):
-        # 确保输入数据类型与模型参数一致
-        x = x.to(self.query.weight.dtype)
-
-        # 如果输入是 (batch_size, feature_dim)，需要扩展为 (batch_size, 1, feature_dim)
-        if len(x.shape) == 2:
-            x = x.unsqueeze(1)  # 添加一个序列维度
-
-        # Query, Key, Value 计算
-        q = self.query(x)  # (batch_size, seq_len, hidden_dim)
-        k = self.key(x)    # (batch_size, seq_len, hidden_dim)
-        v = self.value(x)  # (batch_size, seq_len, c_in)
-
-        # 计算注意力分数并进行 softmax 归一化
-        attention_scores = torch.bmm(q, k.transpose(1, 2)) / (q.size(-1) ** 0.5)
-        attention_probs = self.softmax(attention_scores)
-
-        # 加权求和计算输出
-        out = torch.bmm(attention_probs, v)  # (batch_size, seq_len, c_in)
-        return out'''
-    
-    #MLP
-    '''def __init__(self, c_in=768, reduction=4):
-        super(Adapter, self).__init__()
-        self.mlp = nn.Sequential(
-            nn.Linear(c_in, c_in // reduction, bias=False),
-            nn.ReLU(inplace=True),
-            nn.Linear(c_in // reduction, c_in // reduction, bias=False),
-            nn.ReLU(inplace=True),
-            nn.Linear(c_in // reduction, c_in, bias=False),
-        )
-
-    def forward(self, x):
-        x = x.to(self.mlp[0].weight.dtype)
-        return self.mlp(x)'''
-    
-    #Gated Recurrent Unit
-    '''def __init__(self, c_in=768, hidden_size=128, reduction=4):
-        super(Adapter, self).__init__()
-        self.gru = nn.GRU(input_size=c_in, hidden_size=hidden_size, batch_first=True)
-        self.fc = nn.Linear(hidden_size, c_in)
-
-    def forward(self, x):
-        # x : (batch_size, sequence_length, c_in)
-        _, h_n = self.gru(x)  
-        out = self.fc(h_n.squeeze(0))  
-        return out'''
-
+    return combined_embedding
 
 class TextEncoder(nn.Module):
     def __init__(self, clip_model):
@@ -384,8 +245,6 @@ class PromptLearner(nn.Module):
         
         return prompts
 
-
-
 # CustomCLIP integrating both Adapter and PromptLearner
 class AdapterPrompt(nn.Module):
     def __init__(self, cfg, classnames, clip_model):
@@ -397,7 +256,6 @@ class AdapterPrompt(nn.Module):
         self.prompt_learner = PromptLearner(cfg, classnames, clip_model)
         self.logit_scale = clip_model.logit_scale
         self.dtype = clip_model.dtype
-
 
     def forward(self, image, classnames):
         prompts = self.prompt_learner()
@@ -422,10 +280,6 @@ class AdapterPrompt(nn.Module):
         logits = logit_scale * image_features @ text_features.t()
 
         return logits
-    
-
-
-
 
 # Trainer class combining both models and integrating training for Adapter and PromptLearner
 @TRAINER_REGISTRY.register()
@@ -463,9 +317,6 @@ class UnifiedTrainer(TrainerX):
             print(f"Multiple GPUs detected ({torch.cuda.device_count()} GPUs), using DataParallel")
             self.model = nn.DataParallel(self.model)
 
-        # Print registered model names for debugging
-        #print(f"Registered model names: {self.get_model_names()}")
-
     def forward_backward(self, batch):
         image, label = self.parse_batch_train(batch)
 
@@ -492,12 +343,9 @@ class UnifiedTrainer(TrainerX):
 
         return loss_summary
     
-
     def parse_batch_train(self, batch):
         input = batch["img"]
         label = batch["label"]
         input = input.to(self.device)
         label = label.to(self.device)
         return input, label
-
-
